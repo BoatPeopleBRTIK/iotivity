@@ -85,6 +85,7 @@ server_builder_env.UserInstallTargetLib([server_builder_static, server_builder_s
 ######################################################################
 # Build Test
 ######################################################################
+"""
 if target_os == 'linux':
 	server_builder_test_env = server_builder_env.Clone();
 
@@ -118,3 +119,4 @@ if target_os == 'linux':
 		from tools.scons.RunTest import *
 		run_test(server_builder_test_env, '',
 			'service/resource-encapsulation/src/serverBuilder/rcs_server_test')
+"""

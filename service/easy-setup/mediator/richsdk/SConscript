@@ -138,6 +138,6 @@ if target_os == 'linux':
 ######################################################################
 #Build UnitTestcases for Mediator[RichSDK]
 ################################################ ######################
-if target_os == 'linux':
-    SConscript('unittests/SConscript')
+#if target_os == 'linux':
+#    SConscript('unittests/SConscript')
 

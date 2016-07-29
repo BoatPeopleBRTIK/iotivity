@@ -124,8 +124,8 @@ if target_os == 'linux':
 ######################################################################
 #Build UnitTestcases for Mediator[CSDK]
 ################################################ ######################
-if target_os == 'linux':
-    SConscript('unittests/SConscript')
+#if target_os == 'linux':
+#    SConscript('unittests/SConscript')
 
 
 

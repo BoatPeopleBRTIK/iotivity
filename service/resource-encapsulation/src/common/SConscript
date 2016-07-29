@@ -94,6 +94,7 @@ rcs_common_env.UserInstallTargetLib([rcs_common_static,rcs_common_shared], 'rcs_
 ######################################################################
 # Build Test Expiry Timer and primitive Resource
 ######################################################################
+"""
 if target_os == 'linux':
 	rcs_common_test_env = rcs_common_env.Clone();
 
@@ -130,3 +131,4 @@ if target_os == 'linux':
 		from tools.scons.RunTest import *
 		run_test(rcs_common_test_env, '',
 			'service/resource-encapsulation/src/common/rcs_common_test')
+"""
