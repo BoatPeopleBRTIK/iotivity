@@ -50,7 +50,7 @@ if target_os == 'android':
 
 if target_os in ['linux', 'tizen']:
 	ocprovision_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
-        ocprovision_env.AppendUnique(LIBS = ['oc', 'octbstack', 'ocpmapi', 'oc_logger', 'boost_thread'])
+        ocprovision_env.AppendUnique(LIBS = ['oc', 'octbstack', 'ocpmapi', 'oc_logger', 'boost_thread', 'pthread'])
 
 if target_os in ['darwin', 'ios']:
 	ocprovision_env.AppendUnique(LIBPATH = [env.get('BUILD_DIR')])
