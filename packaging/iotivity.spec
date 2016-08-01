@@ -24,13 +24,13 @@ Requires(post): /sbin/ldconfig
 #%define RELEASE False
 %define RELEASE True
 
-%{!?TARGET_TRANSPORT: %define TARGET_TRANSPORT IP}
-%{!?SECURED: %define SECURED 0}
-%{!?LOGGING: %define LOGGING True}
-%{!?ROUTING: %define ROUTING GW}
-%{!?ES_TARGET_ENROLLEE: %define ES_TARGET_ENROLLEE linux}
-%{!?ES_ROLE: %define ES_ROLE enrollee}
-%{!?ES_SOFTAP_MODE: %define ES_SOFTAP_MODE MEDIATOR_SOFTAP}
+%{!?TARGET_TRANSPORT: %global TARGET_TRANSPORT IP}
+%{!?SECURED: %global SECURED 0}
+%{!?LOGGING: %global LOGGING True}
+%{!?ROUTING: %global ROUTING GW}
+%{!?ES_TARGET_ENROLLEE: %global ES_TARGET_ENROLLEE linux}
+%{!?ES_ROLE: %global ES_ROLE enrollee}
+%{!?ES_SOFTAP_MODE: %global ES_SOFTAP_MODE MEDIATOR_SOFTAP}
 
 %description
 An open source reference implementation of the OIC standard specifications
@@ -150,6 +150,14 @@ cp out/linux/*/%{build_mode}/resource/examples/simpleserverHQ %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/threadingsample %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlient %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientbasicops %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientcoll %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientslow %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserver %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverbasicops %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocservercoll %{ex_install_dir}
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverslow %{ex_install_dir}
 cp out/linux/*/%{build_mode}/libcoap.a %{buildroot}%{_libdir}
 %if 0%{?SECURED} == 1
 mkdir -p %{ex_install_dir}/provisioning
