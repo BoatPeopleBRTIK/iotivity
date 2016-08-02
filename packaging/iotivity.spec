@@ -1,3 +1,5 @@
+%define native %(echo %arm | egrep -c %{_host_cpu})
+
 Name: iotivity
 Version: 1.1.0
 Release: 0%{?dist}
@@ -17,6 +19,7 @@ BuildRequires:  boost-filesystem
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(sqlite3)
+BuildRequires:  chrpath
 Requires(postun): /sbin/ldconfig
 Requires(post): /sbin/ldconfig
 
@@ -90,31 +93,46 @@ cp LICENSE.md LICENSE.APLv2
 %define RPM_ARCH "x86"
 %endif
 
+%if %{native}
+scons %{?_smp_mflags} --prefix=%{_prefix} \
+	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
+	TARGET_TRANSPORT=%{TARGET_TRANSPORT} \
+	RELEASE=%{RELEASE} SECURED=%{SECURED} LOGGING=0 \
+	ES_TARGET_ENROLLEE=%{ES_TARGET_ENROLLEE} ES_ROLE=%{ES_ROLE} \
+	VERBOSE=yes LIB_INSTALL_DIR=%{_libdir}
+%else
 export PKG_CONFIG_SYSROOT_DIR=%{_sysrootdir}
 export PKG_CONFIG_PATH=${PKG_CONFIG_SYSROOT_DIR}/usr/lib/pkg-config
 VERBOSE=1
 scons %{?_smp_mflags} --prefix=%{_prefix} \
 	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
 	TARGET_TRANSPORT=%{TARGET_TRANSPORT} \
-	RELEASE=%{RELEASE} SECURED=%{SECURED}\
+	RELEASE=%{RELEASE} SECURED=%{SECURED} LOGGING=0 \
 	ES_TARGET_ENROLLEE=%{ES_TARGET_ENROLLEE} ES_ROLE=%{ES_ROLE} \
 	VERBOSE=yes TC_PREFIX=arm-linux-gnueabihf- TC_PATH=%{_sysrootdir}/usr \
 	LIB_INSTALL_DIR=%{_libdir}
-
-#SECURED=%{SECURED} LOGGING=%{LOGGING} ROUTING=%{ROUTING} \
+%endif
 
 %install
 rm -rf %{buildroot}
 CFLAGS="${CFLAGS:-%optflags}" ; export CFLAGS ;
+
+%if %{native}
 scons install --install-sandbox=%{buildroot} --prefix=%{_prefix} \
 	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
 	TARGET_TRANSPORT=%{TARGET_TRANSPORT} \
-	RELEASE=%{RELEASE} SECURED=%{SECURED}\
+	RELEASE=%{RELEASE} SECURED=%{SECURED} LOGGING=0 \
+	ES_TARGET_ENROLLEE=%{ES_TARGET_ENROLLEE} ES_ROLE=%{ES_ROLE} \
+	VERBOSE=yes LIB_INSTALL_DIR=%{_libdir}
+%else
+scons install --install-sandbox=%{buildroot} --prefix=%{_prefix} \
+	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
+	TARGET_TRANSPORT=%{TARGET_TRANSPORT} \
+	RELEASE=%{RELEASE} SECURED=%{SECURED} LOGGING=0 \
 	ES_TARGET_ENROLLEE=%{ES_TARGET_ENROLLEE} ES_ROLE=%{ES_ROLE} \
 	VERBOSE=yes TC_PREFIX=arm-linux-gnueabihf- TC_PATH=%{_sysrootdir}/usr \
 	LIB_INSTALL_DIR=%{_libdir}
-
-#SECURED=%{SECURED} LOGGING=%{LOGGING} ROUTING=%{ROUTING} \
+%endif
 
 # For Example
 %if %{RELEASE} == "True"
@@ -129,36 +147,66 @@ cp out/linux/*/%{build_mode}/lib*.so %{buildroot}%{_libdir}
 cp out/linux/*/%{build_mode}/lib*.a %{buildroot}%{_libdir}
 
 cp out/linux/*/%{build_mode}/examples/OICMiddle/OICMiddle %{ex_install_dir}
+chrpath -d %{ex_install_dir}/OICMiddle
 cp out/linux/*/%{build_mode}/resource/examples/devicediscoveryclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/devicediscoveryclient
 cp out/linux/*/%{build_mode}/resource/examples/devicediscoveryserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/devicediscoveryserver
 cp out/linux/*/%{build_mode}/resource/examples/fridgeclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/fridgeclient
 cp out/linux/*/%{build_mode}/resource/examples/fridgeserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/fridgeserver
 cp out/linux/*/%{build_mode}/resource/examples/garageclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/garageclient
 cp out/linux/*/%{build_mode}/resource/examples/garageserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/garageserver
 cp out/linux/*/%{build_mode}/resource/examples/groupclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/groupclient
 cp out/linux/*/%{build_mode}/resource/examples/groupserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/groupserver
 cp out/linux/*/%{build_mode}/resource/examples/lightserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/lightserver
 cp out/linux/*/%{build_mode}/resource/examples/presenceclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/presenceclient
 cp out/linux/*/%{build_mode}/resource/examples/presenceserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/presenceserver
 cp out/linux/*/%{build_mode}/resource/examples/roomclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/roomclient
 cp out/linux/*/%{build_mode}/resource/examples/roomserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/roomserver
 cp out/linux/*/%{build_mode}/resource/examples/simpleclient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/simpleclient
 cp out/linux/*/%{build_mode}/resource/examples/simpleclientHQ %{ex_install_dir}
+chrpath -d %{ex_install_dir}/simpleclientHQ
 cp out/linux/*/%{build_mode}/resource/examples/simpleclientserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/simpleclientserver
 cp out/linux/*/%{build_mode}/resource/examples/simpleserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/simpleserver
 cp out/linux/*/%{build_mode}/resource/examples/simpleserverHQ %{ex_install_dir}
+chrpath -d %{ex_install_dir}/simpleserverHQ
 cp out/linux/*/%{build_mode}/resource/examples/threadingsample %{ex_install_dir}
+chrpath -d %{ex_install_dir}/threadingsample
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/occlient
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientbasicops %{ex_install_dir}
+chrpath -d %{ex_install_dir}/occlientbasicops
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientcoll %{ex_install_dir}
+chrpath -d %{ex_install_dir}/occlientcoll
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientslow %{ex_install_dir}
+chrpath -d %{ex_install_dir}/occlientslow
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserver %{ex_install_dir}
+chrpath -d %{ex_install_dir}/ocserver
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverbasicops %{ex_install_dir}
+chrpath -d %{ex_install_dir}/ocserverbasicops
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocservercoll %{ex_install_dir}
+chrpath -d %{ex_install_dir}/ocservercoll
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverslow %{ex_install_dir}
+chrpath -d %{ex_install_dir}/ocserverslow
+cp out/linux/*/%{build_mode}/libcoap.a %{buildroot}%{_libdir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlient %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientbasicops %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientcoll %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/occlientslow %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserver %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverbasicops %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocservercoll %{ex_install_dir}
-cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverslow %{ex_install_dir}
-cp out/linux/*/%{build_mode}/libcoap.a %{buildroot}%{_libdir}
+
+
 %if 0%{?SECURED} == 1
 mkdir -p %{ex_install_dir}/provisioning
 mkdir -p %{ex_install_dir}/provision-sample

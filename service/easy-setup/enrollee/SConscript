@@ -80,7 +80,7 @@ if target_os == 'linux':
 
 	enrollee_env.AppendUnique(LIBS = ['pthread', 'dl'])
 	enrollee_env.AppendUnique(LIBPATH = [enrollee_env.get('BUILD_DIR')])
-	enrollee_env.AppendUnique(RPATH = [enrollee_env.get('BUILD_DIR')])
+	#enrollee_env.AppendUnique(RPATH = [enrollee_env.get('BUILD_DIR')])
 	enrollee_env.AppendUnique(CXXFLAGS = ['-pthread'])
 	enrollee_env.PrependUnique(LIBS = ['oc', 'octbstack', 'oc_logger', 'pthread', 'connectivity_abstraction'])
 	if enrollee_env.get('SECURED') == '1':
