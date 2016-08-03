@@ -202,10 +202,13 @@ cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServe
 chrpath -d %{ex_install_dir}/ocservercoll
 cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/SimpleClientServer/ocserverslow %{ex_install_dir}
 chrpath -d %{ex_install_dir}/ocserverslow
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/sampleResourceClient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleResourceClient
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/sampleResourceServer %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleResourceServer
 cp out/linux/*/%{build_mode}/libcoap.a %{buildroot}%{_libdir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
-
 
 %if 0%{?SECURED} == 1
 mkdir -p %{ex_install_dir}/provisioning
