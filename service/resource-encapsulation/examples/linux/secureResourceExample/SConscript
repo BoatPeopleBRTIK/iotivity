@@ -70,7 +70,7 @@ server_env.InstallTarget(sampleSecureServer, 'sampleSecureServer')
 src_dir = sample_env.get('SRC_DIR')
 svr_db_src_dir = src_dir + '/service/resource-encapsulation/examples/linux/secureResourceExample/'
 svr_db_build_dir = env.get('BUILD_DIR') +'/service/resource-encapsulation/examples/linux/secureResourceExample/'
-sample_env.Alias("install", sample_env.Install( svr_db_build_dir,
-                svr_db_src_dir + 'oic_svr_db_client.json'))
-sample_env.Alias("install", sample_env.Install( svr_db_build_dir,
-                svr_db_src_dir + 'oic_svr_db_server.json'))
+sample_env.Install( svr_db_build_dir,
+                svr_db_src_dir + 'oic_svr_db_client.json')
+sample_env.Install( svr_db_build_dir,
+                svr_db_src_dir + 'oic_svr_db_server.json')

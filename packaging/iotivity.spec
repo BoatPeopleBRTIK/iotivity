@@ -28,7 +28,7 @@ Requires(post): /sbin/ldconfig
 %define RELEASE True
 
 %{!?TARGET_TRANSPORT: %global TARGET_TRANSPORT IP}
-%{!?SECURED: %global SECURED 0}
+%{!?SECURED: %global SECURED 1}
 %{!?LOGGING: %global LOGGING True}
 %{!?ROUTING: %global ROUTING GW}
 %{!?ES_TARGET_ENROLLEE: %global ES_TARGET_ENROLLEE linux}
@@ -219,9 +219,13 @@ cp ./resource/csdk/security/provisioning/include/oxm/*.h %{buildroot}%{_included
 cp ./resource/csdk/security/provisioning/include/internal/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/include/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/sample/oic_svr_db_server_justworks.dat %{buildroot}%{_libdir}/oic_svr_db_server.dat
-
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleAuthorizedClient %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleAuthorizedClient
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleSecureServer %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleSecureServer
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_client.json %{ex_install_dir}
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_server.json %{ex_install_dir}
 %endif
-
 
 %if 0%{?tizen_version_major} < 3
 mkdir -p %{buildroot}/%{_datadir}/license
@@ -229,9 +233,9 @@ cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}
 cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}-service
 cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}-test
 %endif
+
 cp resource/c_common/*.h %{buildroot}%{_includedir}
 cp resource/csdk/stack/include/*.h %{buildroot}%{_includedir}
-
 cp service/things-manager/sdk/inc/*.h %{buildroot}%{_includedir}
 cp service/easy-setup/inc/*.h %{buildroot}%{_includedir}
 cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}
