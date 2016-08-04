@@ -102,7 +102,7 @@ scons %{?_smp_mflags} --prefix=%{_prefix} \
 	VERBOSE=yes LIB_INSTALL_DIR=%{_libdir}
 %else
 export PKG_CONFIG_SYSROOT_DIR=%{_sysrootdir}
-export PKG_CONFIG_PATH=${PKG_CONFIG_SYSROOT_DIR}/usr/lib/pkg-config
+export PKG_CONFIG_PATH=${PKG_CONFIG_SYSROOT_DIR}/usr/lib/pkgconfig
 VERBOSE=1
 scons %{?_smp_mflags} --prefix=%{_prefix} \
 	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
