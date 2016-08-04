@@ -125,6 +125,8 @@ scons install --install-sandbox=%{buildroot} --prefix=%{_prefix} \
 	ES_TARGET_ENROLLEE=%{ES_TARGET_ENROLLEE} ES_ROLE=%{ES_ROLE} \
 	VERBOSE=yes LIB_INSTALL_DIR=%{_libdir}
 %else
+export PKG_CONFIG_SYSROOT_DIR=%{_sysrootdir}
+export PKG_CONFIG_PATH=${PKG_CONFIG_SYSROOT_DIR}/usr/lib/pkgconfig
 scons install --install-sandbox=%{buildroot} --prefix=%{_prefix} \
 	TARGET_OS=linux TARGET_ARCH=%{RPM_ARCH} \
 	TARGET_TRANSPORT=%{TARGET_TRANSPORT} \
