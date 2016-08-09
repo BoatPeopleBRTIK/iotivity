@@ -229,13 +229,6 @@ cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secur
 cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_server.json %{ex_install_dir}
 %endif
 
-%if 0%{?tizen_version_major} < 3
-mkdir -p %{buildroot}/%{_datadir}/license
-cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}
-cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}-service
-cp LICENSE.APLv2 %{buildroot}/%{_datadir}/license/%{name}-test
-%endif
-
 cp resource/c_common/*.h %{buildroot}%{_includedir}
 cp resource/csdk/stack/include/*.h %{buildroot}%{_includedir}
 cp service/things-manager/sdk/inc/*.h %{buildroot}%{_includedir}
@@ -254,11 +247,7 @@ cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}
 %{_libdir}/liboc_logger_core.so
 %{_libdir}/liboctbstack.so
 #%{_libdir}/libconnectivity_abstraction.so
-%if 0%{?tizen_version_major} < 3
-%{_datadir}/license/%{name}
-%else
 %license LICENSE.APLv2
-%endif
 
 %files service
 %defattr(-,root,root,-)
@@ -277,23 +266,16 @@ cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}
 %{_libdir}/libocprovision.so
 %{_libdir}/oic_svr_db_server.dat
 %endif
-%if 0%{?tizen_version_major} < 3
-%{_datadir}/license/%{name}-service
-%else
 %license LICENSE.APLv2
-%endif
 
 %files test
 %defattr(-,root,root,-)
 %{_bindir}/*
-%if 0%{?tizen_version_major} < 3
-%{_datadir}/license/%{name}-test
-%else
 %license LICENSE.APLv2
-%endif
 
 %files devel
 %defattr(-,root,root,-)
+%license LICENSE.APLv2
 %{_libdir}/lib*.a
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/*
