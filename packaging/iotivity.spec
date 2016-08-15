@@ -28,7 +28,7 @@ Requires(post): /sbin/ldconfig
 %define RELEASE True
 
 %{!?TARGET_TRANSPORT: %global TARGET_TRANSPORT IP}
-%{!?SECURED: %global SECURED 1}
+%{!?SECURED: %global SECURED 0}
 %{!?LOGGING: %global LOGGING True}
 %{!?ROUTING: %global ROUTING GW}
 %{!?ES_TARGET_ENROLLEE: %global ES_TARGET_ENROLLEE linux}
