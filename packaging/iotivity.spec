@@ -208,6 +208,14 @@ cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/sampl
 chrpath -d %{ex_install_dir}/sampleResourceClient
 cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/sampleResourceServer %{ex_install_dir}
 chrpath -d %{ex_install_dir}/sampleResourceServer
+cp out/linux/*/%{build_mode}/service/resource-container/ContainerSample %{ex_install_dir}
+chrpath -d %{ex_install_dir}/ContainerSample
+cp out/linux/*/%{build_mode}/service/resource-hosting/SampleApp/linux/sampleprovider %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleprovider
+cp out/linux/*/%{build_mode}/service/resource-hosting/SampleApp/linux/sampleconsumer %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleconsumer
+cp out/linux/*/%{build_mode}/service/resource-hosting/SampleApp/linux/sampleresourcehosting %{ex_install_dir}
+chrpath -d %{ex_install_dir}/sampleresourcehosting
 cp out/linux/*/%{build_mode}/libcoap.a %{buildroot}%{_libdir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
