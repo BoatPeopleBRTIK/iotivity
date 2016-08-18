@@ -243,12 +243,23 @@ cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secur
 cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_server.json %{ex_install_dir}
 %endif
 
-cp resource/c_common/*.h %{buildroot}%{_includedir}
-cp resource/csdk/stack/include/*.h %{buildroot}%{_includedir}
-cp service/things-manager/sdk/inc/*.h %{buildroot}%{_includedir}
-cp service/easy-setup/inc/*.h %{buildroot}%{_includedir}
-cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}
+mkdir -p %{buildroot}%{_includedir}/service/resource-encapsulation
+mkdir -p %{buildroot}%{_includedir}/service/resource-container
+mkdir -p %{buildroot}%{_includedir}/service/resource-hosting
+mkdir -p %{buildroot}%{_includedir}/service/resource-directory
+mkdir -p %{buildroot}%{_includedir}/service/things-manager
+mkdir -p %{buildroot}%{_includedir}/service/easy-setup
+mkdir -p %{buildroot}%{_includedir}/resource
 
+cp resource/c_common/*.h %{buildroot}%{_includedir}/resource
+cp resource/csdk/stack/include/*.h %{buildroot}%{_includedir}/resource
+cp service/easy-setup/inc/*.h %{buildroot}%{_includedir}/service/easy-setup/
+cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}/service/easy-setup/
+cp service/resource-encapsulation/include/*.h %{buildroot}%{_includedir}/service/resource-encapsulation/
+cp service/resource-container/include/*.h %{buildroot}%{_includedir}/service/resource-container/
+cp service/resource-hosting/include/*.h %{buildroot}%{_includedir}/service/resource-hosting/
+cp service/resource-directory/include/*.h %{buildroot}%{_includedir}/service/resource-directory/
+cp service/things-manager/sdk/inc/*.h %{buildroot}%{_includedir}/service/things-manager/
 
 %post -p /sbin/ldconfig
 
