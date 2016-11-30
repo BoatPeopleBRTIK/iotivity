@@ -124,6 +124,11 @@ typedef struct _CALEContext
      */
     CALEDeviceStateChangedCallback on_device_state_changed;
 
+    /**
+     * Callback invoked upon connection state changed of remote device.
+     */
+    CALEConnectionStateChangedCallback on_connection_state_changed;
+
     /// Callback invoked upon server receiving request data.
     CABLEDataReceivedCallback on_server_received_data;
 

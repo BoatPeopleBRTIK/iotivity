@@ -18,12 +18,26 @@
 
 #include "utils.h"
 #include "bluez.h"
+#include <time.h>
+#include <string.h>
 
 #include "logger.h"
 
 #include <assert.h>
 
+#define BLACK_LIST_REMOVE_ADDR_SEC 180
+#define BLACK_LIST_MAX_RETRY 3
+#define BLACK_LIST_MAX 100
 
+typedef struct BLACKLIST
+{
+    char * addr;
+    long time;
+    int retry;
+}black_list_t;
+
+static black_list_t blackList[BLACK_LIST_MAX];
+static ca_mutex g_black_list_lock;
 // Logging tag.
 static char const TAG[] = "BLE_UTILS";
 
@@ -43,6 +57,7 @@ bool CAGetBlueZManagedObjectProxies(GList ** proxies,
       to the given interface.
     */
     bool success = true;
+    GList * l = NULL;
 
     ca_mutex_lock(context->lock);
 
@@ -56,7 +71,7 @@ bool CAGetBlueZManagedObjectProxies(GList ** proxies,
       Iterate over the objects to find those that implement the given
       BlueZ interface and them to the given list.
     */
-    for (GList * l = context->objects; l != NULL; l = l->next)
+    for (l = context->objects; l != NULL; l = l->next)
     {
         GDBusProxy * const proxy =
             G_DBUS_PROXY(g_dbus_object_get_interface(
@@ -87,6 +102,46 @@ bool CAGetBlueZManagedObjectProxies(GList ** proxies,
     ca_mutex_unlock(context->lock);
 
     return success;
+}
+
+bool CARemoveDevice(GDBusProxy * device, CALEContext * context)
+{
+    GError * error = NULL;
+    GList * l = NULL;
+
+    GVariant * const adapter_prop =
+            g_dbus_proxy_get_cached_property(device, "Adapter");
+
+    char const * const adapter_path =
+            g_variant_get_string(adapter_prop, NULL);
+
+    g_variant_unref(adapter_prop);
+
+    for (l = context->adapters; l != NULL; l = l->next)
+    {
+        GDBusProxy * const adapter = G_DBUS_PROXY(l->data);
+        if (0 == strcmp(adapter_path, g_dbus_proxy_get_object_path(adapter)))
+        {
+            const gchar *path = g_dbus_proxy_get_object_path(device);
+            g_dbus_proxy_call_sync (adapter,
+                                    "RemoveDevice",
+                                    g_variant_new ("(o)", path),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    -1,
+                                    NULL,
+                                    &error);
+            if (error)
+            {
+                OIC_LOG_V(ERROR, TAG, "%s.RemoveDevice() call failed: %s",
+                                    BLUEZ_ADAPTER_INTERFACE,
+                                    error->message);
+
+                g_error_free(error);
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 GDBusProxy * CAGetBlueZInterfaceProxy(GVariant * tuple,
@@ -242,4 +297,103 @@ GVariant * CAMakePropertyDictionary(
     g_variant_builder_add(&builder, "{s@a{sv}}", interface_name, props);
 
     return g_variant_builder_end(&builder);
+}
+
+static long getTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec;
+}
+
+void CAAddBlackList(const char * addr)
+{
+    int cleanIndex=0;
+    long deltaTime=0;
+    long currentTime = getTime();
+    int i = 0;
+    if (g_black_list_lock == NULL)
+    {
+         g_black_list_lock = ca_mutex_new();
+    }
+
+    ca_mutex_lock(g_black_list_lock);
+
+    for(i = 0; i < BLACK_LIST_MAX; i++)
+    {
+        if(blackList[i].addr == NULL)
+        {
+            //find empty blacklist node
+            blackList[i].addr = (char *) malloc (strlen(addr) + 1);
+            strcpy(blackList[i].addr,addr);
+            blackList[i].time = currentTime;
+            blackList[i].retry = 0;
+            ca_mutex_unlock(g_black_list_lock);
+            return;
+        }
+        if (strcmp(blackList[i].addr,addr) == 0)
+        {
+            ++ blackList[i].retry;
+            ca_mutex_unlock(g_black_list_lock);
+            return;
+        }
+        if(currentTime - blackList[i].time > deltaTime)
+        {
+            deltaTime = currentTime - blackList[i].time;
+            cleanIndex = i;
+        }
+    }
+    if(i == BLACK_LIST_MAX)
+    {
+        //if blacklist if full, clean the longest time node
+        free(blackList[cleanIndex].addr);
+        blackList[cleanIndex].addr = (char *) malloc (strlen(addr) + 1);
+        strcpy(blackList[cleanIndex].addr, addr);
+        blackList[cleanIndex].time = currentTime;
+        blackList[cleanIndex].retry = 0;
+    }
+    ca_mutex_unlock(g_black_list_lock);
+}
+
+bool CACheckBlackList(const char * addr)
+{
+    int i = 0;
+    if (g_black_list_lock == NULL)
+    {
+         g_black_list_lock = ca_mutex_new();
+    }
+
+    for (i = 0; i < BLACK_LIST_MAX; i++)
+    {
+        // if device address is in blackList, return false
+        if (blackList[i].addr == NULL)
+        {
+            return false;
+        }
+        if (strcmp(blackList[i].addr, addr) == 0)
+        {
+            if (getTime() - blackList[i].time <= BLACK_LIST_REMOVE_ADDR_SEC)
+            {
+                if (blackList[i].retry < BLACK_LIST_MAX_RETRY)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                //device address is in blackList, but time more than 15mins, clean blackList and connect
+                ca_mutex_lock(g_black_list_lock);
+                free(blackList[i].addr);
+                blackList[i].addr = NULL;
+                blackList[i].retry = 0;
+                OIC_LOG_V(DEBUG, TAG, "Remove [%s] from black list.", addr);
+                ca_mutex_unlock(g_black_list_lock);
+                return false;
+            }
+        }
+    }
 }

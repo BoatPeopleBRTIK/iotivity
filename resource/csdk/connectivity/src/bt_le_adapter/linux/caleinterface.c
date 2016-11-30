@@ -34,8 +34,10 @@
 #include <assert.h>
 
 
-#define MICROSECS_PER_SEC 1000000
-
+#define SCAN_LOOP_SLEEP_MICRO_SEC 1000000
+#define STOP_DISCOVERY_TIMEOUT_MICRO_SEC 2000000
+static pthread_t client_loop_handler = -1;
+static bool g_scan_flag = false;
 // Logging tag.
 static char const TAG[] = "BLE_INTERFACE";
 
@@ -120,6 +122,10 @@ static void CALEOnInterfaceProxyPropertiesChanged(
     char const * const interface_name =
         g_dbus_proxy_get_interface_name(interface_proxy);
 
+    if (interface_name == NULL)
+    {
+        return;
+    }
     bool const is_adapter_interface =
         (strcmp(BLUEZ_ADAPTER_INTERFACE, interface_name) == 0);
 
@@ -178,6 +184,17 @@ static void CALEOnInterfaceProxyPropertiesChanged(
              */
             context->on_device_state_changed(status);
         }
+        if (strcmp(key, "Discovering") == 0)
+        {
+            gboolean const discovering = g_variant_get_boolean(value);
+            if (!discovering)
+            {
+                /*
+                 Discovering changed to false, send signal
+                */
+                ca_cond_signal(context->condition);
+            }
+        }
 
 #ifdef TB_LOG
         gchar * const s = g_variant_print(value, TRUE);
@@ -218,20 +235,6 @@ static void CALEHandleInterfaceAdded(GList ** proxy_list,
     *proxy_list = g_list_prepend(*proxy_list, proxy);
 
     ca_mutex_unlock(g_context.lock);
-
-    /**
-     * Let the thread that may be blocked waiting for Devices to be
-     * discovered know that at least one was found.
-     *
-     * @todo It doesn't feel good putting this @c org.bluez.Device1
-     *       specific code here since this function is meant to be
-     *       BlueZ interface neutral.  Look into ways of moving this
-     *       out of here.
-     */
-    if (strcmp(interface, BLUEZ_DEVICE_INTERFACE) == 0)
-    {
-        ca_cond_signal(g_context.condition);
-    }
 }
 
 static void CALEOnInterfacesAdded(GDBusConnection * connection,
@@ -319,6 +322,13 @@ static void CALEOnInterfacesRemoved(GDBusConnection * connection,
         else if (strcmp(interface, BLUEZ_DEVICE_INTERFACE) == 0)
         {
             list = &g_context.devices;
+        }
+        else if (strcmp(interface, BLUEZ_GATT_CHARACTERISTIC_INTERFACE) == 0)
+        {
+            gchar const * chracter_path = NULL;
+            g_variant_get_child(parameters, 0, "&o", &chracter_path);
+            CAGattClientRemoveAddress(chracter_path);
+            continue;
         }
         else
         {
@@ -580,6 +590,10 @@ static bool CALEDeviceFilter(GDBusProxy * device)
     g_free(UUIDs);
     g_variant_unref(prop);
 
+    if(!accepted)
+    {
+        CARemoveDevice(device, &g_context);
+    }
     return accepted;
 }
 
@@ -971,6 +985,7 @@ void CATerminateLENetworkMonitor()
     ca_mutex_lock(g_context.lock);
 
     g_context.on_device_state_changed = NULL;
+    g_context.on_connection_state_changed = NULL;
     g_context.on_server_received_data = NULL;
     g_context.on_client_received_data = NULL;
     g_context.client_thread_pool      = NULL;
@@ -999,8 +1014,11 @@ CAResult_t CASetLEAdapterStateChangedCb(
 
 CAResult_t CASetLENWConnectionStateChangedCb(CALEConnectionStateChangedCallback callback)
 {
-    (void)callback;
-    return CA_NOT_SUPPORTED;
+    ca_mutex_lock(g_context.lock);
+    g_context.on_connection_state_changed = callback;
+    ca_mutex_unlock(g_context.lock);
+
+    return CA_STATUS_OK;
 }
 
 CAResult_t CAGetLEAddress(char **local_address)
@@ -1148,6 +1166,82 @@ CAResult_t CAUpdateCharacteristicsToAllGattClients(uint8_t const * value,
     return CAGattServerSendResponseNotificationToAll(value, valueLen);
 }
 
+static void *CALEClientScanLoop(void * data)
+{
+    CALEContext * const context = data;
+    GList * l = NULL;
+    GVariant * cached_property = NULL;
+    bool connected;
+    bool discovering = true;
+
+    assert(context != NULL);
+
+    for (;;)
+    {
+        if (!g_scan_flag)
+        {
+            break;
+        }
+
+        ca_mutex_lock(context->lock);
+
+        for (l = context->devices; l != NULL; l = l->next) {
+            GDBusProxy * const device = G_DBUS_PROXY(l->data);
+
+            cached_property = g_dbus_proxy_get_cached_property(device,
+                                                               "Connected");
+
+            if (cached_property != NULL)
+            {
+                connected = g_variant_get_boolean(cached_property);
+                g_variant_unref(cached_property);
+
+                if (connected)
+                {
+                    continue;
+                }
+            }
+            GVariant * const address_prop =
+                g_dbus_proxy_get_cached_property(device, "Address");
+
+            char const * const address =
+                g_variant_get_string(address_prop, NULL);
+
+            g_variant_unref(address_prop);
+
+            if (!CACheckBlackList(address))
+            {
+                if (discovering)
+                {
+                    CACentralStopDiscovery(context);
+                    /*
+                     Waiting for stop discovery complete signal
+                    */
+                    ca_cond_wait_for(context->condition,
+                                     context->lock,
+                                     STOP_DISCOVERY_TIMEOUT_MICRO_SEC);
+                    discovering = false;
+                }
+                if (CACentralConnect(device))
+                {
+                    CAGattClientConnected(context, device);
+                    break;
+                }
+            }
+        }
+        if (l == NULL && discovering == false)
+        {
+            CACentralStartDiscovery(context);
+            discovering = true;
+        }
+        ca_mutex_unlock(context->lock);
+
+        usleep(SCAN_LOOP_SLEEP_MICRO_SEC);
+    }
+
+    return NULL;
+}
+
 CAResult_t CAStartLEGattClient()
 {
     CAResult_t result = CACentralStart(&g_context);
@@ -1157,58 +1251,32 @@ CAResult_t CAStartLEGattClient()
         return result;
     }
 
-    ca_mutex_lock(g_context.lock);
-    bool found_peripherals = (g_context.devices != NULL);
-    ca_mutex_unlock(g_context.lock);
+    g_scan_flag = true;
 
-    if (!found_peripherals)
+    CAGattClientInitialize();
+
+    int val = pthread_create(&client_loop_handler,
+                             NULL,
+                             CALEClientScanLoop,
+                             &g_context);
+    if (val != 0)
     {
-        // Wait for LE peripherals to be discovered.
+        CAGattClientDestroy();
+        CACentralStop(&g_context);
 
-        // Number of times to wait for discovery to complete.
-        static int const retries = 5;
-
-        static uint64_t const timeout =
-            2 * MICROSECS_PER_SEC;  // Microseconds
-
-        if (!CALEWaitForNonEmptyList(&g_context.devices,
-                                     retries,
-                                     timeout))
-        {
-            return result;
-        }
+        return CA_STATUS_FAILED;
     }
 
-    /*
-      Stop discovery so that we can connect to LE peripherals.
-      Otherwise, the bluetooth subsystem will claim the adapter is
-      busy.
-    */
-
-    result = CACentralStopDiscovery(&g_context);
-
-    if (result != CA_STATUS_OK)
-    {
-        return result;
-    }
-
-    bool const connected = CACentralConnectToAll(&g_context);
-
-    if (!connected)
-    {
-        return result;
-    }
-
-    /**
-     * @todo Verify notifications have been enabled on all response
-     *       characteristics.
-     */
-
-    return CAGattClientInitialize(&g_context);
+    return CA_STATUS_OK;
 }
 
 void CAStopLEGattClient()
 {
+    g_scan_flag = false;
+    if (client_loop_handler != -1)
+    {
+       pthread_join(client_loop_handler, NULL);
+    }
     CAGattClientDestroy();
     (void) CACentralStop(&g_context);
 }

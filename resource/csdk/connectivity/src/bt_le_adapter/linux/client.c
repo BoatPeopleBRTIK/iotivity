@@ -165,6 +165,60 @@ static bool CAGattClientMapInsert(GHashTable * map,
     return insert;
 }
 
+static bool CAGattGetClientObjectProxies(GList ** proxies,
+                                         char const * interface,
+                                         GList * objects,
+                                         char const * object_path,
+                                         char const * property)
+{
+    if (interface == NULL
+            || proxies == NULL
+            || objects == NULL
+            || object_path == NULL
+            || property == NULL)
+    {
+        OIC_LOG(ERROR, TAG, "Invalid input parameters");
+        return false;
+    }
+
+    bool success = true;
+    GList * l = NULL;
+
+    for ( l = objects; l != NULL; l = l->next)
+    {
+        GDBusProxy * const proxy =
+            G_DBUS_PROXY(g_dbus_object_get_interface(
+                G_DBUS_OBJECT(l->data),
+                interface));
+        if (proxy != NULL)
+        {
+            GVariant * const proxy_property =
+                g_dbus_proxy_get_cached_property(proxy, property);
+
+            if (proxy_property != NULL)
+            {
+                char *proxy_object = NULL;
+                g_variant_get(proxy_property, "o", &proxy_object);
+                g_variant_unref(proxy_property);
+
+                if (proxy_object != NULL && strcmp(proxy_object, object_path) == 0)
+                {
+                    *proxies = g_list_prepend(*proxies, proxy);
+                }
+                else
+                {
+                    g_object_unref(proxy);
+                }
+            }
+            else
+            {
+                g_object_unref(proxy);
+            }
+        }
+    }
+    return success;
+}
+
 static bool CAGattClientSetupCharacteristics(
     GDBusProxy * service,
     char const * address,
@@ -173,60 +227,26 @@ static bool CAGattClientSetupCharacteristics(
     CALEContext * context)
 {
     bool success = true;
+    char const * const service_object_path =
+        g_dbus_proxy_get_object_path(service);
+    GList * characteristics = NULL;
+    GList * l = NULL;
+    GList * local_objects = g_dbus_object_manager_get_objects(context->object_manager);
 
-    GVariant * const characteristics_prop =
-        g_dbus_proxy_get_cached_property(service, "Characteristics");
-
-    gsize length = 0;
-    gchar const ** const characteristic_paths =
-        g_variant_get_objv(characteristics_prop, &length);
-
-#ifdef TB_LOG
-    if (length == 0)
+    CAGattGetClientObjectProxies(&characteristics,
+                                 BLUEZ_GATT_CHARACTERISTIC_INTERFACE,
+                                 local_objects,
+                                 service_object_path,
+                                 "Service");
+    if (characteristics == NULL)
     {
-        OIC_LOG(ERROR,
-                TAG,
-                "Server side OIC GATT Service has no characteristics");
+        OIC_LOG(ERROR, TAG, "org.bluez.GattCharacteristic1 not found");
+        success = false;
+        return success;
     }
-#endif
-
-    /*
-      Create a proxies to the org.bluez.GattCharacteristic1 D-Bus
-      objects that will later be used to send requests and receive
-      responses on the client side.
-    */
-    gchar const * const * const end = characteristic_paths + length;
-    for (gchar const * const * path = characteristic_paths;
-         path != end && success;
-         ++path)
+    for (l = characteristics; l != NULL && success; l = l->next)
     {
-        // Find the request characteristic.
-        GError * error = NULL;
-
-        GDBusProxy * const characteristic =
-            g_dbus_proxy_new_sync(context->connection,
-                                  G_DBUS_PROXY_FLAGS_NONE,
-                                  NULL, // GDBusInterfaceInfo
-                                  BLUEZ_NAME,
-                                  *path,
-                                  BLUEZ_GATT_CHARACTERISTIC_INTERFACE,
-                                  NULL, // GCancellable
-                                  &error);
-
-        if (characteristic == NULL)
-        {
-            OIC_LOG_V(ERROR,
-                      TAG,
-                      "Unable to obtain proxy to GATT characteristic: %s",
-                      error->message);
-
-            g_error_free(error);
-
-            success = false;
-
-            break;
-        }
-
+        GDBusProxy * const characteristic = G_DBUS_PROXY(l->data);
         GVariant * const uuid_prop =
             g_dbus_proxy_get_cached_property(characteristic, "UUID");
 
@@ -252,7 +272,8 @@ static bool CAGattClientSetupCharacteristics(
         }
         else if (strcasecmp(uuid, CA_GATT_RESPONSE_CHRC_UUID) == 0)
         {
-            char * const p    = OICStrdup(*path);
+            char * const p =
+                OICStrdup(g_dbus_proxy_get_object_path(characteristic));
             char * const addr = OICStrdup(address);
 
             // Map GATT service D-Bus object path to client address.
@@ -281,6 +302,8 @@ static bool CAGattClientSetupCharacteristics(
                     "g-properties-changed",
                     G_CALLBACK(CAGattClientOnCharacteristicPropertiesChanged),
                     context);
+
+                GError * error = NULL;
 
                 // Enable notifications.
                 GVariant * const ret =
@@ -322,11 +345,11 @@ static bool CAGattClientSetupCharacteristics(
 #endif
 
         g_variant_unref(uuid_prop);
-        g_object_unref(characteristic);
     }
 
-    g_free(characteristic_paths);
-    g_variant_unref(characteristics_prop);
+    // Free characteristics.
+    g_list_free_full(characteristics, g_object_unref);
+    g_list_free_full(local_objects, g_object_unref);
 
     return success;
 }
@@ -335,7 +358,6 @@ static bool CAGattClientSetupService(
     GDBusProxy * device,
     GHashTable * characteristic_map,
     GHashTable * address_map,
-    GVariant   * services_prop,
     CALEContext * context)
 {
     bool success = true;
@@ -346,6 +368,9 @@ static bool CAGattClientSetupService(
     char const * const address =
         g_variant_get_string(address_prop, NULL);
 
+    char const * const device_object_path =
+            g_dbus_proxy_get_object_path(device);
+
     /*
       Create a proxies to the org.bluez.GattService1 D-Bus objects
       that implement the OIC Transport Profile on the client side.
@@ -354,70 +379,34 @@ static bool CAGattClientSetupService(
       org.bluez.Device1.GattServices property were detected
       asynchronously through the PropertiesChanged signal.
     */
-    if (services_prop != NULL)
+    GVariant *service_resolved_pro =
+            g_dbus_proxy_get_cached_property(device, "ServicesResolved");
+    bool is_service_resolved = g_variant_get_boolean(service_resolved_pro);
+
+    g_variant_unref(service_resolved_pro);
+
+    if (!is_service_resolved)
     {
-        /*
-          The caller owns the variant so hold on to a reference since
-          we assume ownership in this function.
-        */
-        g_variant_ref(services_prop);
+        return false;
     }
-    else
+    GList * services = NULL;
+    GList * l = NULL;
+    GList * local_objects = g_dbus_object_manager_get_objects(context->object_manager);
+    CAGattGetClientObjectProxies(&services,
+                                 BLUEZ_GATT_SERVICE_INTERFACE,
+                                 local_objects,
+                                 device_object_path,
+                                 "Device");
+    if (services == NULL)
     {
-        // Check if GATT services have already been discovered.
-        services_prop =
-            g_dbus_proxy_get_cached_property(device, "GattServices");
+        OIC_LOG(ERROR, TAG,
+                    "Unable to obtain proxy to GATT service");
+        return false;
     }
 
-    gsize length = 0;
-    char const ** const service_paths =
-        services_prop != NULL
-        ? g_variant_get_objv(services_prop, &length)
-        : NULL;
-
-#ifdef TB_LOG
-    if (length == 0)
+    for (l = services; l != NULL && success; l = l->next)
     {
-        // GATT services may not yet have been discovered.
-        OIC_LOG_V(INFO,
-                  TAG,
-                  "GATT services not yet discovered "
-                  "on LE peripheral: %s\n",
-                  address);
-    }
-#endif
-
-    gchar const * const * const end = service_paths + length;
-    for (gchar const * const * path = service_paths;
-         path != end && success;
-         ++path)
-    {
-        // Find the OIC Transport Profile GATT service.
-        GError * error = NULL;
-
-        GDBusProxy * const service =
-            g_dbus_proxy_new_sync(context->connection,
-                                  G_DBUS_PROXY_FLAGS_NONE,
-                                  NULL, // GDBusInterfaceInfo
-                                  BLUEZ_NAME,
-                                  *path,
-                                  BLUEZ_GATT_SERVICE_INTERFACE,
-                                  NULL, // GCancellable
-                                  &error);
-
-        if (service == NULL)
-        {
-            OIC_LOG_V(ERROR,
-                      TAG,
-                      "Unable to obtain proxy to GATT service: %s",
-                      error->message);
-
-            g_error_free(error);
-
-            success = false;
-
-            break;
-        }
+        GDBusProxy * const service = G_DBUS_PROXY(l->data);
 
         GVariant * const uuid_prop =
             g_dbus_proxy_get_cached_property(service, "UUID");
@@ -446,17 +435,48 @@ static bool CAGattClientSetupService(
         }
 
         g_variant_unref(uuid_prop);
-        g_object_unref(service);
-    }
-
-    if (services_prop != NULL)
-    {
-        g_variant_unref(services_prop);
     }
 
     g_variant_unref(address_prop);
-
+    // Free services.
+    g_list_free_full(services, g_object_unref);
+    g_list_free_full(local_objects, g_object_unref);
     return success;
+}
+
+static void CAGattClientRemoveCharacteristics(
+    GDBusProxy * device,
+    GHashTable * characteristic_map)
+{
+    GVariant * const address_prop =
+            g_dbus_proxy_get_cached_property(device, "Address");
+    char const * const address =
+            g_variant_get_string(address_prop, NULL);
+    g_variant_unref(address_prop);
+
+    ca_mutex_lock(g_context.lock);
+
+    if (characteristic_map)
+    {
+        if (g_hash_table_contains(characteristic_map,address))
+        {
+            g_hash_table_remove (characteristic_map,address);
+        }
+    }
+
+    ca_mutex_unlock(g_context.lock);
+
+}
+
+void CAGattClientRemoveAddress(char const * object_path)
+{
+    if (g_context.address_map)
+    {
+        if (g_hash_table_contains(g_context.address_map,object_path))
+        {
+            g_hash_table_remove (g_context.address_map,object_path);
+        }
+    }
 }
 
 static void CAGattClientOnDevicePropertiesChanged(
@@ -473,88 +493,151 @@ static void CAGattClientOnDevicePropertiesChanged(
     (void) invalidated_properties;
 
     /*
-      Retrieve the org.bluez.Device1.GattServices property from the
+      Retrieve the org.bluez.Device1.ServicesResolved property from the
       changed_properties dictionary parameter (index 1).
     */
-    GVariant * const services_prop =
-        g_variant_lookup_value(changed_properties, "GattServices", NULL);
+    GVariant *service_resolved_pro =
+            g_variant_lookup_value(changed_properties, "ServicesResolved", NULL);
 
-    if (services_prop != NULL)
+    GVariant * const address_prop =
+            g_dbus_proxy_get_cached_property(device, "Address");
+    char const * const address =
+            g_variant_get_string(address_prop, NULL);
+    g_variant_unref(address_prop);
+
+    if (service_resolved_pro)
     {
-        CALEContext * const context = user_data;
+        bool is_service_resolved = g_variant_get_boolean(service_resolved_pro);
+        g_variant_unref(service_resolved_pro);
 
-        ca_mutex_lock(g_context.lock);
+        if (is_service_resolved)
+        {
+            CALEContext * const context = user_data;
+            ca_mutex_lock(g_context.lock);
 
-        CAGattClientSetupService(device,
-                                 g_context.characteristic_map,
-                                 g_context.address_map,
-                                 services_prop,
-                                 context);
+            bool resulte = CAGattClientSetupService(device,
+                                     g_context.characteristic_map,
+                                     g_context.address_map,
+                                     context);
+            ca_mutex_unlock(g_context.lock);
+            if (!resulte)
+            {
+                CAGattClientRemoveCharacteristics(device,
+                                              g_context.characteristic_map);
 
-        ca_mutex_unlock(g_context.lock);
+                g_dbus_proxy_call(device,
+                                  "Disconnect",
+                                  NULL,  // parameters
+                                  G_DBUS_CALL_FLAGS_NONE,
+                                  -1,    // timeout (default == -1),
+                                  NULL,  // cancellable
+                                  NULL,  // callback
+                                  NULL); // user data
 
-        g_variant_unref(services_prop);
+                CAAddBlackList(address);
+            }
+        }
+        else
+        {
+            CAGattClientRemoveCharacteristics(device,
+                                              g_context.characteristic_map);
+        }
+    }
+
+    GVariant *connect_prop =
+            g_variant_lookup_value(changed_properties, "Connected", NULL);
+    if (connect_prop)
+    {
+        bool is_connected = g_variant_get_boolean(connect_prop);
+        g_variant_unref(connect_prop);
+
+        if (!is_connected)
+        {
+            CALEContext * const context = (CALEContext *) user_data;
+            GList * l = NULL;
+
+            ca_mutex_lock(context->lock);
+
+            for (l = context->devices; l != NULL; l = g_list_next(l))
+            {
+                GDBusProxy * const proxy = G_DBUS_PROXY(l->data);
+
+                if (strcmp(g_dbus_proxy_get_object_path(device),
+                           g_dbus_proxy_get_object_path(proxy)) == 0)
+                {
+                    g_object_unref(proxy);
+                    context->devices = g_list_delete_link(context->devices, l);
+                    break;
+                }
+            }
+            CARemoveDevice(device, context);
+
+            ca_mutex_unlock(context->lock);
+
+            if (context->on_connection_state_changed)
+            {
+                context->on_connection_state_changed(CA_ADAPTER_GATT_BTLE,
+                                                     address,
+                                                     false);
+            }
+        }
     }
 }
 
-CAResult_t CAGattClientInitialize(CALEContext * context)
+CAResult_t CAGattClientInitialize()
 {
-    g_context.lock = ca_mutex_new();
-
-    /*
-      Map Bluetooth MAC address to OIC Transport Profile
-      request characteristics.
-    */
-    GHashTable * const characteristic_map =
-        g_hash_table_new_full(g_str_hash,
-                              g_str_equal,
-                              OICFree,
-                              g_object_unref);
-
-    /*
-      Map OIC Transport Profile response characteristic D-Bus object
-      path to Bluetooth MAC address.
-    */
-    GHashTable * const address_map =
-        g_hash_table_new_full(g_str_hash,
-                              g_str_equal,
-                              OICFree,
-                              OICFree);
-
-    ca_mutex_lock(context->lock);
-
-    for (GList * l = context->devices; l != NULL; l = l->next)
-    {
-        GDBusProxy * const device = G_DBUS_PROXY(l->data);
+    if (!g_context.lock){
+        g_context.lock = ca_mutex_new();
 
         /*
-          Detect changes in BlueZ Device properties.  This is
-          predominantly used to detect GATT services that were
-          discovered asynchronously.
+          Map Bluetooth MAC address to OIC Transport Profile
+          request characteristics.
         */
-        g_signal_connect(
-            device,
-            "g-properties-changed",
-            G_CALLBACK(CAGattClientOnDevicePropertiesChanged),
-            context);
+        GHashTable * const characteristic_map =
+            g_hash_table_new_full(g_str_hash,
+                                  g_str_equal,
+                                  OICFree,
+                                  g_object_unref);
 
-        CAGattClientSetupService(device,
-                                 characteristic_map,
-                                 address_map,
-                                 NULL,
-                                 context);
+        /*
+          Map OIC Transport Profile response characteristic D-Bus object
+          path to Bluetooth MAC address.
+        */
+        GHashTable * const address_map =
+            g_hash_table_new_full(g_str_hash,
+                                  g_str_equal,
+                                  OICFree,
+                                  OICFree);
+
+        ca_mutex_lock(g_context.lock);
+
+        g_context.characteristic_map = characteristic_map;
+        g_context.address_map = address_map;
+
+        ca_mutex_unlock(g_context.lock);
     }
 
-    ca_mutex_unlock(context->lock);
-
-    ca_mutex_lock(g_context.lock);
-
-    g_context.characteristic_map = characteristic_map;
-    g_context.address_map = address_map;
-
-    ca_mutex_unlock(g_context.lock);
-
     return CA_STATUS_OK;
+}
+
+bool CAGattClientConnected(CALEContext * context, GDBusProxy * const device)
+{
+    bool result = false;
+
+    /*
+      Detect changes in BlueZ Device properties.  This is
+      predominantly used to detect GATT services that were
+      discovered asynchronously.
+    */
+    g_signal_connect(
+        device,
+        "g-properties-changed",
+        G_CALLBACK(CAGattClientOnDevicePropertiesChanged),
+        context);
+    return CAGattClientSetupService(device,
+                             g_context.characteristic_map,
+                             g_context.address_map,
+                             context);
 }
 
 void CAGattClientDestroy()
@@ -608,13 +691,17 @@ static CAResult_t CAGattClientSendDataImpl(GDBusProxy * characteristic,
                                   data,
                                   length,
                                   1);  // sizeof(data[0]) == 1
+    GVariantBuilder *builder = NULL;
 
+    builder = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
+
+    g_variant_builder_add(builder, "{sv}", "offset", g_variant_new_uint16(0));
     /*
       WriteValue() expects a byte array but it must be packed into a
       tuple for the actual call through the proxy.
     */
-    GVariant * const value_parameter = g_variant_new("(@ay)", value);
-
+    GVariant * const value_parameter = g_variant_new("(@aya{sv})", value, builder);
+    g_variant_builder_unref(builder);
     GError * error = NULL;
 
     GVariant * const ret =
@@ -683,6 +770,8 @@ CAResult_t CAGattClientSendData(char const * address,
           was not found.
         */
 
+        ca_mutex_unlock(g_context.lock);
+
         return result;
     }
 
@@ -706,7 +795,7 @@ CAResult_t CAGattClientSendDataToAll(uint8_t const * data,
 
     ca_mutex_lock(g_context.lock);
 
-    if (g_context.characteristic_map == NULL)
+    if (g_hash_table_size (g_context.characteristic_map) == 0)
     {
         // Remote OIC GATT service was not found prior to getting here.
         ca_mutex_unlock(g_context.lock);

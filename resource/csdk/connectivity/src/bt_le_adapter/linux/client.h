@@ -25,11 +25,27 @@
 /**
  * Initialize the GATT client.
  *
- * @param[in] context
- *
  * @return @c CA_STATUS_OK on success, @c CA_STATUS_FAILED otherwise.
  */
-CAResult_t CAGattClientInitialize(CALEContext * context);
+CAResult_t CAGattClientInitialize();
+
+/**
+ * Setup characteristic map after the device is connected.
+ *
+ * @param[in] context
+ * @param[in] device
+ *
+ * @return true on success, false otherwise.
+ */
+bool CAGattClientConnected(CALEContext * context, GDBusProxy * const device);
+
+/**
+ * Remove characteristic path in address map.
+ *
+ * @param[in] object_path
+ *
+ */
+void CAGattClientRemoveAddress(char const * object_path);
 
 /**
  * Destroy the GATT client.

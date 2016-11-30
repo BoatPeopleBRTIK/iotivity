@@ -56,6 +56,15 @@ bool CAGetBlueZManagedObjectProxies(GList ** proxies,
                                     CALEContext * context,
                                     CALEProxyFilter filter);
 
+/**
+ * Remove the remote device in BlueZ.
+ *
+ * @param[in]  D-Bus interface proxy of remote device.
+ * @param[in]  context   BLE Linux adapter context.
+ *
+ * @return @c true if remove successful.
+ */
+bool CARemoveDevice(GDBusProxy * device, CALEContext * context);
 
 /**
  * Get the proxy to a object that implements the given D-Bus
@@ -142,6 +151,25 @@ GVariant * CAMakePropertyDictionary(
     char const * interface_name,
     CADBusSkeletonProperty const * properties,
     size_t count);
+
+/*
+* add this address into black list
+*
+* @param[in] device The device address which will be added into black list
+*
+*/
+void CAAddBlackList(const char * addr);
+
+/*
+* add this address into black list
+*
+* @param[in] device The device address which will be added into black list
+*
+* @return true if device is in black list and reached max retry times.
+*               false if device isn't in black list or device do not reach max
+*                        retry times.
+*/
+bool CACheckBlackList(const char * addr);
 
 
 #endif  // CA_BLE_LINUX_UTILS_H

@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
-
+#define DISCONNECT_DELAY_SEC 2
 // Logging tag.
 static char const TAG[] = "BLE_CENTRAL";
 
@@ -277,6 +277,7 @@ static void CACentralDisconnect(CALEContext * context)
                               NULL,  // cancellable
                               NULL,  // callback
                               NULL); // user data
+            sleep(DISCONNECT_DELAY_SEC);
         }
     }
 
@@ -321,7 +322,9 @@ CAResult_t CACentralStop(CALEContext * context)
     CAResult_t result = CA_STATUS_FAILED;
 
     // Stop discovery on all detected adapters.
+    ca_mutex_lock(context->lock);
     result = CACentralStopDiscovery(context);
+    ca_mutex_unlock(context->lock);
 
     // Disconnect from all adapters.
     CACentralDisconnect(context);
@@ -343,14 +346,11 @@ CAResult_t CACentralStartDiscovery(CALEContext * context)
       Synchronize access to the adapter information using the base
       context lock since we don't own the adapters.
      */
-    ca_mutex_lock(context->lock);
 
     // Start discovery on all detected adapters.
     g_list_foreach(context->adapters,
                    CACentralStartDiscoveryImpl,
                    &result);
-
-    ca_mutex_unlock(context->lock);
 
     return result;
 }
@@ -365,8 +365,6 @@ CAResult_t CACentralStopDiscovery(CALEContext * context)
       Synchronize access to the adapter information using the base
       context lock since we don't own the adapters.
      */
-    ca_mutex_lock(context->lock);
-
     // Stop discovery on all detected adapters.
     g_list_foreach(context->adapters,
                    CACentralStopDiscoveryImpl,
@@ -375,9 +373,6 @@ CAResult_t CACentralStopDiscovery(CALEContext * context)
     /**
      * @todo Stop notifications on all response characteristics.
      */
-
-    ca_mutex_unlock(context->lock);
-
     return result;
 }
 
