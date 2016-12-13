@@ -109,9 +109,9 @@ extlibs/android/sdk/android-sdk-linux
 extlibs/android/sdk/android-sdk-macosx
 extlibs/android/sdk/android-sdk-windows
 extlibs/boost/*
-extlibs/tinycbor/tinycbor
+#extlibs/tinycbor/tinycbor
 *.tgz
-*.zip
+#*.zip
 extlibs/arduino/arduino-1.5.8
 build_common/arduino/extlibs/arduino/arduino-1.5.8
 extlibs/tinydtls/dtls-client
