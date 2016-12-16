@@ -640,7 +640,9 @@ namespace OC
         {
             ss << COAPS;
         }
-        else if (m_devAddr.adapter & OC_ADAPTER_TCP)
+		else if ((m_devAddr.adapter & OC_ADAPTER_TCP)
+            || (m_devAddr.adapter & OC_ADAPTER_GATT_BTLE)
+            || (m_devAddr.adapter & OC_ADAPTER_RFCOMM_BTEDR))
         {
             ss << COAP_TCP;
         }

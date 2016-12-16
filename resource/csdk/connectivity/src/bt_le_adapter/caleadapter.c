@@ -46,6 +46,13 @@
 #define CALEADAPTER_TAG "OIC_CA_LE_ADAP"
 
 /**
+ * The MTU supported for BLE adapter
+ */
+#define CA_SUPPORTED_BLE_MTU_SIZE  20
+
+#define ARTIK_ENM_OVER_GATT
+
+/**
  * Stores information of all the senders.
  *
  * This structure will be used to track and defragment all incoming
@@ -2597,6 +2604,10 @@ static void CATerminateLE()
 static CAResult_t CAStartLEListeningServer()
 {
     OIC_LOG(DEBUG, CALEADAPTER_TAG, "IN - CAStartLEListeningServer");
+#ifdef ARTIK_ENM_OVER_GATT
+	OIC_LOG(DEBUG, CALEADAPTER_TAG, "LE server not supported.");
+	return CA_STATUS_OK;
+#else
 #ifndef ROUTING_GATEWAY
     CAResult_t result = CA_STATUS_OK;
 #ifndef SINGLE_THREAD
@@ -2643,6 +2654,7 @@ static CAResult_t CAStartLEListeningServer()
     // Routing Gateway only supports BLE client mode.
     OIC_LOG(ERROR, CALEADAPTER_TAG, "LE server not supported in Routing Gateway");
     return CA_NOT_SUPPORTED;
+#endif
 #endif
 }
 
@@ -2728,6 +2740,7 @@ static int32_t CASendLEUnicastData(const CAEndpoint_t *endpoint,
     }
 
     ca_mutex_lock(g_bleIsServerMutex);
+#if !defined(ARTIK_ENM_OVER_GATT)
     if (ADAPTER_SERVER == g_adapterType ||
             (ADAPTER_BOTH_CLIENT_SERVER == g_adapterType && CA_RESPONSE_DATA == dataType))
     {
@@ -2744,6 +2757,7 @@ static int32_t CASendLEUnicastData(const CAEndpoint_t *endpoint,
             return -1;
         }
     }
+#endif
 
     if (ADAPTER_CLIENT == g_adapterType ||
             (ADAPTER_BOTH_CLIENT_SERVER == g_adapterType && CA_REQUEST_DATA == dataType) ||
@@ -2793,6 +2807,7 @@ static int32_t CASendLEMulticastData(const CAEndpoint_t *endpoint,
     }
 
     ca_mutex_lock(g_bleIsServerMutex);
+#if !defined(ARTIK_ENM_OVER_GATT)
     if (ADAPTER_SERVER == g_adapterType ||
             (ADAPTER_BOTH_CLIENT_SERVER == g_adapterType && CA_RESPONSE_DATA == dataType))
     {
@@ -2810,6 +2825,7 @@ static int32_t CASendLEMulticastData(const CAEndpoint_t *endpoint,
             return -1;
         }
     }
+#endif
 
     if (ADAPTER_CLIENT == g_adapterType ||
             (ADAPTER_BOTH_CLIENT_SERVER == g_adapterType && CA_REQUEST_DATA == dataType) ||

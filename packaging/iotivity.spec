@@ -42,7 +42,7 @@ Source: %{name}-%{version}.tar.gz
 %{!?SECURED: %define SECURED 0}
 %{!?TARGET_ARCH: %define TARGET_ARCH %{_arch}}
 %{!?TARGET_OS: %define TARGET_OS linux}
-%{!?TARGET_TRANSPORT: %define TARGET_TRANSPORT IP}
+%{!?TARGET_TRANSPORT: %define TARGET_TRANSPORT IP,BLE}
 %{!?VERBOSE: %define VERBOSE 1}
 %{!?WITH_CLOUD: %define WITH_CLOUD 0}
 %{!?WITH_MQ: %define WITH_MQ OFF}
