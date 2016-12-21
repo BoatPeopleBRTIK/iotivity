@@ -35,7 +35,7 @@ Source: %{name}-%{version}.tar.gz
 %define ex_install_dir %{buildroot}%{_bindir}
 
 %{!?ES_TARGET_ENROLLEE: %define ES_TARGET_ENROLLEE linux}
-%{!?LOGGING: %define LOGGING 1}
+%{!?LOGGING: %define LOGGING 0}
 %{!?RD_MODE: %define RD_MODE SERVER,CLIENT} # ResourceDirectory Mode
 %{!?RELEASE: %define RELEASE 1}
 %{!?ROUTING: %define ROUTING GW} # EP or GW(Gateway)
