@@ -649,9 +649,13 @@ static bool CALESetUpBlueZObjects(CALEContext * context)
     // An empty device list is NULL.
     if (success && devices != NULL)
     {
-        ca_mutex_lock(context->lock);
-        context->devices = devices;
-        ca_mutex_unlock(context->lock);
+        for (GList * l = devices; l != NULL; l = l->next)
+        {
+            GDBusProxy * const device = G_DBUS_PROXY(l->data);
+            ca_mutex_lock(context->lock);
+            CARemoveDevice(device, context);
+            ca_mutex_unlock(context->lock);
+        }
     }
 
     return success;

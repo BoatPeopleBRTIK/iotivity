@@ -278,6 +278,7 @@ static void CACentralDisconnect(CALEContext * context)
                               NULL,  // callback
                               NULL); // user data
             sleep(DISCONNECT_DELAY_SEC);
+            CARemoveDevice(device, context);
         }
     }
 
