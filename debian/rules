@@ -18,13 +18,16 @@ ifeq (True, $(RELEASE))
 else
 	export build_mode = debug
 endif
-ifneq (,$(filter arm,$(DEB_HOST_ARCH_CPU)))
-	export BUILD_ARCH = armeabi-v7a-hard
 ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	export PKG_CONFIG = $(DEB_HOST_MULTIARCH)-pkg-config
 	export PKG_CONFIG_PATH = /usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	export PKG_CONFIG_SYSROOT_DIR = /usr
 endif
+ifneq (,$(filter arm,$(DEB_HOST_ARCH_CPU)))
+	export BUILD_ARCH = armeabi-v7a-hard
+endif
+ifneq (,$(filter arm64,$(DEB_HOST_ARCH_CPU)))
+	export BUILD_ARCH = arm64
 endif
 ifneq (,$(filter amd64,$(DEB_HOST_ARCH_CPU)))
 	export BUILD_ARCH = x86_64
