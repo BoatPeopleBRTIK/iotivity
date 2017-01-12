@@ -9,7 +9,7 @@ Build-Depends: debhelper (>=9),
 	libglib2.0-dev,
 	uuid-dev,
 	scons:all,
-#python-dev
+	python-dev
 Standards-Version: 3.9.6
 Homepage: https://www.iotivity.org/
 #Vcs-Git: git://anonscm.debian.org/collab-maint/iotivity.git
