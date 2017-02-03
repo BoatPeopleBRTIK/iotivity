@@ -27,7 +27,8 @@ Description: The iotivity-dev package contains libraries and header files for de
 
 Package: iotivity-service
 Architecture: any
-Depends: iotivity
+Depends: iotivity,
+	${shlibs:Depends}, ${misc:Depends}
 Description: The iotivity-service package contains service libraries files for developing application that use iotivity-service.
 
 Package: iotivity-test
