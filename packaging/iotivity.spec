@@ -2,7 +2,7 @@
 
 Name: iotivity
 Version: 1.2.1
-Release: 0%{?dist}
+Release: 1%{?dist}
 Summary: IoT Connectivity sponsored by the OCF
 Group: Network & Connectivity / IoT Connectivity
 License: Apache-2.0 and BSD-2-Clause and (MIT or BSL-1.0) and MIT
@@ -36,10 +36,10 @@ Source: %{name}-%{version}.tar.gz
 
 %{!?ES_TARGET_ENROLLEE: %define ES_TARGET_ENROLLEE linux}
 %{!?LOGGING: %define LOGGING 0}
-%{!?RD_MODE: %define RD_MODE SERVER,CLIENT} # ResourceDirectory Mode
+%{!?RD_MODE: %define RD_MODE all} # ResourceDirectory Mode
 %{!?RELEASE: %define RELEASE 1}
 %{!?ROUTING: %define ROUTING GW} # EP or GW(Gateway)
-%{!?SECURED: %define SECURED 0}
+%{!?SECURED: %define SECURED 1}
 %{!?TARGET_ARCH: %define TARGET_ARCH %{_arch}}
 %{!?TARGET_OS: %define TARGET_OS linux}
 %{!?TARGET_TRANSPORT: %define TARGET_TRANSPORT IP,BLE}
@@ -119,6 +119,9 @@ find . \
      done > tmp.tmp && mv tmp.tmp LICENSE
 
 cat LICENSE
+
+# Install mbedtls dependency for SECURED mode
+git clone %{_sourcedir}/mbedtls-2.4.0.bundle -b development extlibs/mbedtls/mbedtls
 
 %build
 
@@ -278,10 +281,47 @@ chrpath -d %{ex_install_dir}/ContainerSample
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
 
-%if 0%{?SECURED} == 1
-mkdir -p %{ex_install_dir}/provisioning
-mkdir -p %{ex_install_dir}/provision-sample
+mkdir -p %{ex_install_dir}/oic/provisioning
+cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/*.dat %{ex_install_dir}/oic/provisioning
+cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/provisioningclient %{ex_install_dir}/oic/provisioning
+chrpath -d %{ex_install_dir}/oic/provisioning/provisioningclient
+cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/sampleserver_justworks %{ex_install_dir}/oic/provisioning
+chrpath -d %{ex_install_dir}/oic/provisioning/sampleserver_justworks
+cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/sampleserver_mfg %{ex_install_dir}/oic/provisioning
+chrpath -d %{ex_install_dir}/oic/provisioning/sampleserver_mfg
+cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/sampleserver_randompin %{ex_install_dir}/oic/provisioning
+chrpath -d %{ex_install_dir}/oic/provisioning/sampleserver_randompin
 
+mkdir -p %{ex_install_dir}/oic/security/unittests
+cp out/linux/*/%{build_mode}/resource/csdk/security/unittest/*.dat %{ex_install_dir}/oic/security/unittests/
+cp out/linux/*/%{build_mode}/resource/csdk/security/unittest/*.json %{ex_install_dir}/oic/security/unittests/
+cp out/linux/*/%{build_mode}/resource/csdk/security/unittest/unittest %{ex_install_dir}/oic/security/unittests/
+chrpath -d %{ex_install_dir}/oic/security/unittests/unittest
+
+mkdir -p %{ex_install_dir}/oic/security/examples
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/secure/*.dat %{ex_install_dir}/oic/security/examples/
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/secure/*.json %{ex_install_dir}/oic/security/examples/
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/secure/occlientdirectpairing %{ex_install_dir}/oic/security/examples/
+chrpath -d %{ex_install_dir}/oic/security/examples/occlientdirectpairing
+cp out/linux/*/%{build_mode}/resource/csdk/stack/samples/linux/secure/ocserverbasicops %{ex_install_dir}/oic/security/examples/
+chrpath -d %{ex_install_dir}/oic/security/examples/ocserverbasicops
+
+mkdir -p %{ex_install_dir}/oic/provisioning/unittests
+cp out/linux/*/%{build_mode}/resource/provisioning/unittests/*.json %{ex_install_dir}/oic/provisioning/unittests/
+cp out/linux/*/%{build_mode}/resource/provisioning/unittests/provisiontests %{ex_install_dir}/oic/provisioning/unittests/
+chrpath -d %{ex_install_dir}/oic/provisioning/unittests/provisiontests
+
+mkdir -p %{ex_install_dir}/oic/resource-encapsulation/examples
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/*.json %{ex_install_dir}/oic/resource-encapsulation/examples/
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleAuthorizedClient %{ex_install_dir}/oic/resource-encapsulation/examples/
+chrpath -d %{ex_install_dir}/oic/resource-encapsulation/examples/sampleAuthorizedClient
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleSecureServer %{ex_install_dir}/oic/resource-encapsulation/examples/
+chrpath -d %{ex_install_dir}/oic/resource-encapsulation/examples/sampleSecureServer
+
+mkdir -p %{ex_install_dir}/oic/resource-encapsulation/unittests
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/unittests/*.dat %{ex_install_dir}/oic/resource-encapsulation/unittests/
+cp out/linux/*/%{build_mode}/service/resource-encapsulation/unittests/rcs_client_test %{ex_install_dir}/oic/resource-encapsulation/unittests/
+chrpath -d %{ex_install_dir}/oic/resource-encapsulation/unittests/rcs_client_test
 
 cp ./resource/csdk/security/include/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/connectivity/api/*.h %{buildroot}%{_includedir}/
@@ -289,13 +329,6 @@ cp ./resource/csdk/security/provisioning/include/oxm/*.h %{buildroot}%{_included
 cp ./resource/csdk/security/provisioning/include/internal/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/include/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/sample/oic_svr_db_server_justworks.dat %{buildroot}%{_libdir}/oic_svr_db_server.dat
-cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleAuthorizedClient %{ex_install_dir}
-chrpath -d %{ex_install_dir}/sampleAuthorizedClient
-cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/sampleSecureServer %{ex_install_dir}
-chrpath -d %{ex_install_dir}/sampleSecureServer
-cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_client.json %{ex_install_dir}
-cp out/linux/*/%{build_mode}/service/resource-encapsulation/examples/linux/secureResourceExample/oic_svr_db_server.json %{ex_install_dir}
-%endif
 
 mkdir -p %{buildroot}%{_includedir}/service/resource-encapsulation
 mkdir -p %{buildroot}%{_includedir}/service/resource-container
@@ -314,6 +347,8 @@ cp service/easy-setup/enrollee/inc/*.h %{buildroot}%{_includedir}/service/easy-s
 cp service/resource-encapsulation/include/RCSRepresentation.h %{buildroot}%{_includedir}/service/resource-encapsulation/
 cp service/resource-encapsulation/include/RCSSeparateResponse.h %{buildroot}%{_includedir}/service/resource-encapsulation/
 cp resource/csdk/resource-directory/include/*.h %{buildroot}%{_includedir}/service/resource-directory/
+
+rm -rf %{buildroot}/root
 
 %post -p /sbin/ldconfig
 
@@ -342,11 +377,9 @@ cp resource/csdk/resource-directory/include/*.h %{buildroot}%{_includedir}/servi
 %{_libdir}/libESEnrolleeSDK.so
 %{_libdir}/libESMediatorRich.so
 %{_libdir}/libnotification*.so
-%if 0%{?SECURED} == 1
 %{_libdir}/libocpmapi.so
 %{_libdir}/libocprovision.so
 %{_libdir}/oic_svr_db_server.dat
-%endif
 
 %files test
 %defattr(-,root,root,-)
