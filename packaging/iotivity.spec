@@ -39,7 +39,7 @@ Source: %{name}-%{version}.tar.gz
 %{!?RD_MODE: %define RD_MODE all} # ResourceDirectory Mode
 %{!?RELEASE: %define RELEASE 1}
 %{!?ROUTING: %define ROUTING GW} # EP or GW(Gateway)
-%{!?SECURED: %define SECURED 1}
+%{!?SECURED: %define SECURED 0}
 %{!?TARGET_ARCH: %define TARGET_ARCH %{_arch}}
 %{!?TARGET_OS: %define TARGET_OS linux}
 %{!?TARGET_TRANSPORT: %define TARGET_TRANSPORT IP,BLE}
@@ -281,6 +281,7 @@ chrpath -d %{ex_install_dir}/ContainerSample
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_server.dat %{ex_install_dir}
 cp out/linux/*/%{build_mode}/resource/examples/oic_svr_db_client.dat %{ex_install_dir}
 
+%if %{SECURED} == 1
 mkdir -p %{ex_install_dir}/oic/provisioning
 cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/*.dat %{ex_install_dir}/oic/provisioning
 cp out/linux/*/%{build_mode}/resource/csdk/security/provisioning/sample/provisioningclient %{ex_install_dir}/oic/provisioning
@@ -329,6 +330,7 @@ cp ./resource/csdk/security/provisioning/include/oxm/*.h %{buildroot}%{_included
 cp ./resource/csdk/security/provisioning/include/internal/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/include/*.h %{buildroot}%{_includedir}
 cp ./resource/csdk/security/provisioning/sample/oic_svr_db_server_justworks.dat %{buildroot}%{_libdir}/oic_svr_db_server.dat
+%endif
 
 mkdir -p %{buildroot}%{_includedir}/service/resource-encapsulation
 mkdir -p %{buildroot}%{_includedir}/service/resource-container
@@ -377,9 +379,11 @@ rm -rf %{buildroot}/root
 %{_libdir}/libESEnrolleeSDK.so
 %{_libdir}/libESMediatorRich.so
 %{_libdir}/libnotification*.so
+%if %{SECURED} == 1
 %{_libdir}/libocpmapi.so
 %{_libdir}/libocprovision.so
 %{_libdir}/oic_svr_db_server.dat
+%endif
 
 %files test
 %defattr(-,root,root,-)
