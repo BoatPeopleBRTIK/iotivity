@@ -224,14 +224,10 @@ CFLAGS="${CFLAGS:-%optflags}" ; export CFLAGS ;
 SCONSFLAGS="%{SCONSFLAGS}" ; export SCONSFLAGS;
 scons --install-sandbox=%{buildroot} install
 
-
-find "%{buildroot}" -type f -perm u+x -exec chrpath -d "{}" \;
-find "%{buildroot}" -type f -iname "lib*.so" -exec chrpath -d "{}" \;
-
-install -d %{buildroot}%{_includedir}/iotivity
-ln -fs ../resource %{buildroot}%{_includedir}/iotivity/
-ln -fs ../service %{buildroot}%{_includedir}/iotivity/
-ln -fs ../c_common %{buildroot}%{_includedir}/iotivity/
+# Support legacy path (transitional, use pkg-config)
+ln -fs iotivity/resource %{buildroot}%{_includedir}/
+ln -fs iotivity/service %{buildroot}%{_includedir}/
+ln -fs iotivity/c_common %{buildroot}%{_includedir}/
 
 rm -rfv out %{buildroot}/out %{buildroot}/${HOME} ||:
 
