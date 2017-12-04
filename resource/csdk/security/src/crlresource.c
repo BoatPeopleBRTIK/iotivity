@@ -446,7 +446,10 @@ OCStackResult UpdateCRLResource(OicSecCrl_t *crl)
         return res;
     }
 
-    return UpdateSecureResourceInPS(OIC_CBOR_CRL_NAME, payload, size);
+    res = UpdateSecureResourceInPS(OIC_CBOR_CRL_NAME, payload, size);
+    OICFree(payload);
+
+    return res;
 }
 
 static bool ValidateQuery(const char * query)
