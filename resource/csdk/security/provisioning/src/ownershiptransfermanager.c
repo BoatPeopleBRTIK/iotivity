@@ -1628,6 +1628,7 @@ static OCStackResult PostOwnerCredential(OTMContext_t* otmCtx)
     const OicSecCred_t* ownerCredential = GetCredResourceData(&(deviceInfo->doxm->deviceID));
     if(!ownerCredential)
     {
+        OCPayloadDestroy((OCPayload *)secPayload);
         OIC_LOG(ERROR, TAG, "Can not find OwnerPSK.");
         return OC_STACK_NO_RESOURCE;
     }
@@ -1677,6 +1678,7 @@ static OCStackResult PostOwnerCredential(OTMContext_t* otmCtx)
     }
     else
     {
+        OCPayloadDestroy((OCPayload *)secPayload);
         OIC_LOG(ERROR, TAG, "Failed to read DOXM device ID.");
         return OC_STACK_NO_RESOURCE;
     }
@@ -2516,6 +2518,7 @@ OCStackResult PostProvisioningStatus(OTMContext_t* otmCtx)
                         otmCtx->selectedDeviceInfo->connType,
                         query, sizeof(query), OIC_RSRC_PSTAT_URI))
     {
+        OCPayloadDestroy((OCPayload *)secPayload);
         OIC_LOG_V(ERROR, TAG, "%s : Failed to generate query", __func__);
         return OC_STACK_ERROR;
     }
@@ -2581,6 +2584,7 @@ OCStackResult PostNormalOperationStatus(OTMContext_t* otmCtx)
                         otmCtx->selectedDeviceInfo->connType,
                         query, sizeof(query), OIC_RSRC_PSTAT_URI))
     {
+        OCPayloadDestroy((OCPayload *)secPayload);
         OIC_LOG(ERROR, TAG, "PostNormalOperationStatus : Failed to generate query");
         return OC_STACK_ERROR;
     }
@@ -2782,6 +2786,7 @@ OCStackResult PostRownerUuid(OTMContext_t* otmCtx)
                         otmCtx->selectedDeviceInfo->connType,
                         query, sizeof(query), OIC_RSRC_PSTAT_URI))
     {
+        OCPayloadDestroy((OCPayload *)secPayload);
         OIC_LOG_V(ERROR, TAG, "%s : Failed to generate query", __func__);
         return OC_STACK_ERROR;
     }
