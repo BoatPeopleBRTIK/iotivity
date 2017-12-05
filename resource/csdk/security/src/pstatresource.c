@@ -485,6 +485,11 @@ static OCStackResult CBORPayloadToPstatBin(const uint8_t *cborPayload,
             }
             while (cbor_value_is_valid(&dosMap) && cbor_value_is_text_string(&dosMap))
             {
+                if (dosTagName)
+                {
+                    free(dosTagName);
+                    dosTagName = NULL;
+                }
                 cborFindResult = cbor_value_dup_text_string(&dosMap, &dosTagName, &dosLen, NULL);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed getting dos map next tag.");
                 cborFindResult = cbor_value_advance(&dosMap);
@@ -699,8 +704,11 @@ static OCStackResult CBORPayloadToPstatBin(const uint8_t *cborPayload,
             OIC_JSON_ROWNERID_NAME, strUuid);
         ret = ConvertStrToUuid(strUuid , &pstat->rownerID);
         VERIFY_SUCCESS(TAG, OC_STACK_OK == ret, ERROR);
-        OICFree(strUuid );
-        strUuid  = NULL;
+        if (strUuid)
+        {
+            free(strUuid);
+            strUuid = NULL;
+        }
         if (roParsed)
         {
             if (IsPropertyReadOnly(PSTAT_ROWNERUUID, stateForReadOnlyCheck))
@@ -721,6 +729,16 @@ static OCStackResult CBORPayloadToPstatBin(const uint8_t *cborPayload,
     ret = OC_STACK_OK;
 
 exit:
+    if (dosTagName)
+    {
+        free(dosTagName);
+        dosTagName = NULL;
+    }
+    if (strUuid)
+    {
+        free(strUuid);
+        strUuid = NULL;
+    }
     if (CborNoError != cborFindResult)
     {
         OIC_LOG(ERROR, TAG, "CBORPayloadToPstat failed");

@@ -207,6 +207,12 @@ exit:
 OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                                  OicSecAmacl_t **secAmacl)
 {
+    char *name = NULL;
+    char *rsrcName = NULL;
+    char *rMapName = NULL;
+    char *rtData = NULL;
+    char *ifData = NULL;
+
     if (NULL == cborPayload || NULL == secAmacl || NULL != *secAmacl || 0 == size)
     {
         return OC_STACK_INVALID_PARAM;
@@ -230,7 +236,11 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
 
     while(cbor_value_is_valid(&amaclMap) && cbor_value_is_text_string(&amaclMap))
     {
-        char *name = NULL;
+        if (name)
+        {
+            free(name);
+            name = NULL;
+        }
         size_t len = 0;
         cborFindResult = cbor_value_dup_text_string(&amaclMap, &name, &len, NULL);
         VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Amacl Data Name Tag.");
@@ -250,7 +260,11 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
             while(cbor_value_is_valid(&rsrcMap) && cbor_value_is_text_string(&rsrcMap))
             {
                 // resource name
-                char *rsrcName = NULL;
+                if (rsrcName)
+                {
+                    free(rsrcName);
+                    rsrcName = NULL;
+                }
                 size_t rsrcNameLen = 0;
                 cborFindResult = cbor_value_dup_text_string(&rsrcMap, &rsrcName, &rsrcNameLen, NULL);
                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding Resource Data Name Tag.");
@@ -284,7 +298,11 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
 
                         while(cbor_value_is_valid(&rMap) && cbor_value_is_text_string(&rMap))
                         {
-                            char *rMapName = NULL;
+                            if (rMapName)
+                            {
+                                free(rMapName);
+                                rMapName = NULL;
+                            }
                             size_t rMapNameLen = 0;
                             cborFindResult = cbor_value_dup_text_string(&rMap, &rMapName, &rMapNameLen, NULL);
                             VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding RMap Data Name Tag.");
@@ -303,20 +321,36 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                             if (0 == strcmp(OIC_JSON_RT_NAME, rMapName))
                             {
                                 // TODO : Need to check data structure of OicSecAmacl_t and assign based on RAML spec.
-                                char *rtData = NULL;
+                                if (rtData)
+                                {
+                                    free(rtData);
+                                    rtData = NULL;
+                                }
                                 cborFindResult = cbor_value_dup_text_string(&rMap, &rtData, &len, NULL);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding RT Value.");
-                                OICFree(rtData);
+                                if (rtData)
+                                {
+                                    free(rtData);
+                                    rtData = NULL;
+                                }
                             }
 
                             // "if"
                             if (0 == strcmp(OIC_JSON_IF_NAME, rMapName))
                             {
                                 // TODO : Need to check data structure of OicSecAmacl_t and assign based on RAML spec.
-                                char *ifData = NULL;
+                                if (ifData)
+                                {
+                                    free(ifData);
+                                    ifData = NULL;
+                                }
                                 cborFindResult = cbor_value_dup_text_string(&rMap, &ifData, &len, NULL);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Finding IF Value.");
-                                OICFree(ifData);
+                                if (ifData)
+                                {
+                                    free(ifData);
+                                    ifData = NULL;
+                                }
                             }
 
                             if (cbor_value_is_valid(&rMap))
@@ -324,7 +358,11 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                                 cborFindResult = cbor_value_advance(&rMap);
                                 VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing Rlist Map.");
                             }
-                            OICFree(rMapName);
+                            if (rMapName)
+                            {
+                                free(rMapName);
+                                rMapName = NULL;
+                            }
                         }
 
                         if (cbor_value_is_valid(&rsrcArray))
@@ -340,17 +378,45 @@ OCStackResult CBORPayloadToAmacl(const uint8_t *cborPayload, size_t size,
                     cborFindResult = cbor_value_advance(&rsrcMap);
                     VERIFY_CBOR_SUCCESS_OR_OUT_OF_MEMORY(TAG, cborFindResult, "Failed Advancing Resource Map.");
                 }
-                OICFree(rsrcName);
+                if (rsrcName)
+                {
+                    free(rsrcName);
+                    rsrcName = NULL;
+                }
             }
         }
 
-        OICFree(name);
+        if (name)
+        {
+            free(name);
+            name = NULL;
+        }
     }
 
     *secAmacl = headAmacl;
     ret = OC_STACK_OK;
 
 exit:
+    if (name)
+    {
+        free(name);
+    }
+    if (rsrcName)
+    {
+        free(rsrcName);
+    }
+    if (rMapName)
+    {
+        free(rMapName);
+    }
+    if (rtData)
+    {
+        free(rtData);
+    }
+    if (ifData)
+    {
+        free(ifData);
+    }
     if (CborNoError != cborFindResult)
     {
         DeleteAmaclList(headAmacl);
