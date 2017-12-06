@@ -1786,6 +1786,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     OCPayload* payload = NULL;
     char *interfaceQuery = NULL;
     char *resourceTypeQuery = NULL;
+    CAEndpoint_t *networkInfo = NULL;
 
     OIC_LOG(INFO, TAG, "Entering HandleVirtualResource");
 
@@ -1841,7 +1842,6 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
             goto exit;
         }
 
-        CAEndpoint_t *networkInfo = NULL;
         size_t infoSize = 0;
 
         CAResult_t caResult = CAGetNetworkInformation(&networkInfo, &infoSize);
@@ -1915,6 +1915,7 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
         if (networkInfo)
         {
             OICFree(networkInfo);
+            networkInfo = NULL;
         }
 #ifdef RD_SERVER
         discoveryResult = findResourcesAtRD(interfaceQuery, resourceTypeQuery, &request->devAddr,
@@ -2032,6 +2033,12 @@ static OCStackResult HandleVirtualResource (OCServerRequest *request, OCResource
     }
 
 exit:
+    if (networkInfo)
+    {
+        OICFree(networkInfo);
+        networkInfo = NULL;
+    }
+
     if (interfaceQuery)
     {
         OICFree(interfaceQuery);
