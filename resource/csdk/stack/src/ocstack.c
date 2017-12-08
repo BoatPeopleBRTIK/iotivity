@@ -2350,6 +2350,7 @@ OCStackResult HandleStackRequests(OCServerProtocolRequest * protocolRequest)
         {
             result = ProcessRequest(resHandling, resource, request);
         }
+        FindAndDeleteServerRequest(request);
     }
     else
     {
