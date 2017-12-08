@@ -132,7 +132,7 @@ static OCStackResult SendObserveNotification(ResourceObserver *observer,
                 observer->TTL = GetTicks(MAX_OBSERVER_TTL_SECONDS * MILLISECONDS_PER_SECOND);
             }
         }
-        OICFree(request);
+        FindAndDeleteServerRequest(request);
     }
 
     return result;
@@ -193,7 +193,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
 
                     if (!presenceResBuf)
                     {
-                        OICFree(request);
+                        FindAndDeleteServerRequest(request);
                         return OC_STACK_NO_MEMORY;
                     }
 
@@ -210,7 +210,7 @@ OCStackResult SendAllObserverNotification (OCMethod method, OCResource *resPtr, 
                     }
 
                     OCPresencePayloadDestroy(presenceResBuf);
-                    OICFree(request);
+                    FindAndDeleteServerRequest(request);
                 }
             }
 #endif
