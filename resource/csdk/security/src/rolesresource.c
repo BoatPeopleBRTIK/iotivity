@@ -857,6 +857,12 @@ static OCEntityHandlerResult HandlePostRequest(OCEntityHandlerRequest *ehRequest
                 freeData = true;
             }
 
+            if (pubKey)
+            {
+                OICFree(pubKey);
+                pubKey = NULL;
+            }
+
             OCStackResult validationResult = OCInternalIsValidRoleCertificate(data, dataLength,
                 &pubKey, &pubKeyLength);
 
