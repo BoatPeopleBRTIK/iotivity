@@ -2502,6 +2502,21 @@ exit:
             DeleteCredList(cred);
         }
     }
+    else
+    {
+        if (NULL != cred)
+        {
+            OicSecCred_t *credTmp1 = NULL, *credTmp2 = NULL;
+            LL_FOREACH_SAFE(cred, credTmp1, credTmp2)
+            {
+                if (IsEmptyCred(credTmp1))
+                {
+                    LL_DELETE(cred, credTmp1);
+                    FreeCred(credTmp1);
+                }
+            }
+        }
+    }
 
     // Send response to request originator
     ret = ((SendSRMResponse(ehRequest, ret, NULL, 0)) == OC_STACK_OK) ?
