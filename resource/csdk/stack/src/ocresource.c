@@ -1042,7 +1042,11 @@ OCStackResult BuildIntrospectionPayloadResponse(const OCResource *resourcePtr,
         else
         {
             ret = OC_STACK_NO_MEMORY;
+        }
+        if (introspectionData)
+        {
             OICFree(introspectionData);
+            introspectionData = NULL;
         }
     }
 
