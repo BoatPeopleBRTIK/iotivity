@@ -184,3 +184,57 @@ elif ca_os not in ['msys_nt', 'windows']:
 
 connectivity_env.InstallTarget(calib, 'connectivity_abstraction')
 connectivity_env.UserInstallTargetLib(calib, 'connectivity_abstraction')
+connectivity_env.UserInstallTargetHeader(
+    '../api/cacommon.h', 'resource', 'cacommon.h')
+connectivity_env.UserInstallTargetHeader(
+    '../api/cainterface.h', 'resource', 'cainterface.h')
+connectivity_env.UserInstallTargetHeader(
+    '../api/casecurityinterface.h', 'resource', 'casecurityinterface.h')
+connectivity_env.UserInstallTargetHeader(
+    '../api/cautilinterface.h', 'resource', 'cautilinterface.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/address.h', 'resource/coap', 'address.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/async.h', 'resource/coap', 'async.c')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/bits.h', 'resource/coap', 'bits.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/block.h', 'resource/coap', 'block.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/coap.h', 'resource/coap', 'coap.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/coap_list.h', 'resource/coap', 'coap_list.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/coap_time.h', 'resource/coap', 'coap_time.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/config.h', 'resource/coap', 'config.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/debug.h', 'resource/coap', 'debug.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/encode.h', 'resource/coap', 'encode.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/hashkey.h', 'resource/coap', 'hashkey.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/mem.h', 'resource/coap', 'mem.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/net.h', 'resource/coap', 'net.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/option.h', 'resource/coap', 'option.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/pdu.h', 'resource/coap', 'pdu.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/prng.h', 'resource/coap', 'prng.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/resource.h', 'resource/coap', 'resource.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/str.h', 'resource/coap', 'str.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/subscribe.h', 'resource/coap', 'subscribe.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/t_list.h', 'resource/coap', 't_list.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/uri.h', 'resource/coap', 'uri.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/uthash.h', 'resource/coap', 'uthash.h')
+connectivity_env.UserInstallTargetHeader(
+    '../lib/libcoap-4.1.1/include/coap/utlist.h', 'resource/coap', 'utlist.h')

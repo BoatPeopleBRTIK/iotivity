@@ -155,3 +155,47 @@ libocsrm_env.InstallTarget(libocsrm, 'ocsrm')
 libocsrm_env.UserInstallTargetHeader(
     'include/experimental/securevirtualresourcetypes.h',
     'resource/stack/experimental', 'securevirtualresourcetypes.h')
+
+libocsrm_env.UserInstallTargetHeader(
+    'include/base64.h', 'resource/stack', 'base64.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/iotvticalendar.h', 'resource/stack', 'iotvticalendar.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/occertutility.h', 'resource/stack', 'occertutility.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/ocsecurity.h', 'resource/stack', 'ocsecurity.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/oxmverifycommon.h', 'resource/stack', 'oxmverifycommon.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/pbkdf2.h', 'resource/stack', 'pbkdf2.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/pinoxmcommon.h', 'resource/stack', 'pinoxmcommon.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/pkix_interface.h', 'resource/stack', 'pkix_interface.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/srmutility.h', 'resource/stack', 'srmutility.h')
+
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/aclresource.h', 'resource/stack', 'aclresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/amaclresource.h', 'resource/stack', 'amaclresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/credresource.h', 'resource/stack', 'credresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/crlresource.h', 'resource/stack', 'crlresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/csrresource.h', 'resource/stack', 'csrresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/deviceonboardingstate.h', 'resource/stack', 'deviceonboardingstate.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/doxmresource.h', 'resource/stack', 'doxmresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/policyengine.h', 'resource/stack', 'policyengine.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/psinterface.h', 'resource/stack', 'psinterface.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/pstatresource.h', 'resource/stack', 'pstatresource.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/resourcemanager.h', 'resource/stack', 'resourcemanager.h')
+libocsrm_env.UserInstallTargetHeader(
+    'include/internal/srmresourcestrings.h', 'resource/stack', 'srmresourcestrings.h')
