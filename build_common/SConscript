@@ -376,6 +376,9 @@ if target_os in ['yocto']:
 else:
     env['CONFIG_ENVIRONMENT_IMPORT'] = False
 
+if os.environ.get('PKG_CONFIG_PATH') != None:
+    env['ENV']['PKG_CONFIG_PATH'] = os.environ.get('PKG_CONFIG_PATH')
+
 if env['CONFIG_ENVIRONMENT_IMPORT']:
     print("warning: importing some environment variables for OS: %s" % target_os)
     for ev in [
