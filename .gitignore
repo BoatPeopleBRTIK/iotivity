@@ -112,7 +112,6 @@ extlibs/hippomocks/hippomocks
 extlibs/hippomocks-master
 extlibs/libcoap/libcoap
 extlibs/libstrophe/libstrophe
-extlibs/rapidjson/rapidjson
 extlibs/raxmpp/raxmpp
 extlibs/sqlite3/sqlite3*
 extlibs/tinydtls/dtls-client
