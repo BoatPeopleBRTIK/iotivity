@@ -99,7 +99,6 @@ tmp/
 
 # Ignore downloaded dependencies
 *.tgz
-*.zip
 *.bin
 extlibs/android/gradle/gradle-*
 extlibs/android/ndk/android-ndk-*
