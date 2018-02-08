@@ -1,3 +1,4 @@
 usr/include/*
 usr/lib/*/pkgconfig/iotivity.pc
 usr/lib/*/lib*.a
+usr/lib/*/iotivity/resource/csdk/security/tool/*

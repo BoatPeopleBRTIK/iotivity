@@ -1,7 +1,7 @@
 Source: iotivity
 Section: libs
 Priority: optional
-Maintainer: Chanho Park <chanho61.park@samsung.com>
+Maintainer: Chanho Park <chanho61.park@samsung.com>, Inho Oh <inho48.oh@samsung.com>
 Build-Depends: debhelper (>=9),
 	libboost-dev,
 	libboost-thread-dev,
@@ -9,28 +9,40 @@ Build-Depends: debhelper (>=9),
 	libglib2.0-dev,
 	uuid-dev,
 	scons:all,
-	python-dev
+	libsqlite3-dev,
+	unzip,
+	autoconf,
+	automake,
+	libtool,
+	chrpath
 Standards-Version: 3.9.6
 Homepage: https://www.iotivity.org/
-#Vcs-Git: git://anonscm.debian.org/collab-maint/iotivity.git
-#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/iotivity.git
+Vcs-Git: https://github.com/SamsungARTIK/iotivity.git
+Vcs-Browser: https://github.com/SamsungARTIK/iotivity
 
 Package: iotivity
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: An open source reference implementation of the OIC standard specifications IoTivity Base Libraries are included.
+Description: IoTivity is an open source software framework enabling seamless device-to-device connectivity to address the emerging needs of the Internet of Things.
 
 Package: iotivity-dev
 Architecture: any
 Depends: iotivity
-Description: The iotivity-dev package contains libraries and header files for developing applications that use iotivity.
+Description: IoTivity is an open source software framework enabling seamless device-to-device connectivity to address the emerging needs of the Internet of Things. - Development files
 
 Package: iotivity-service
 Architecture: any
 Depends: iotivity
-Description: The iotivity-service package contains service libraries files for developing application that use iotivity-service.
+Description: IoTivity is an open source software framework enabling seamless device-to-device connectivity to address the emerging needs of the Internet of Things. - Service layer libraries
 
 Package: iotivity-test
 Architecture: any
 Depends: iotivity
-Description: The iotivity-test package contains example files to show how the iotivity works using iotivity-test
+Description: IoTivity is an open source software framework enabling seamless device-to-device connectivity to address the emerging needs of the Internet of Things. - Examples
+
+Package: iotivity-dbg
+Section: debug
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: IoTivity is an open source software framework enabling seamless device-to-device connectivity to address the emerging needs of the Internet of Things. - Debug symbols
+

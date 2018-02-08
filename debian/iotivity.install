@@ -1,4 +1,9 @@
+usr/lib/*/libconnectivity_abstraction.so
+usr/lib/*/libipca.so
 usr/lib/*/liboc.so
 usr/lib/*/liboc_logger.so
 usr/lib/*/liboc_logger_core.so
+usr/lib/*/libocpmapi.so
+usr/lib/*/libocprovision.so
 usr/lib/*/liboctbstack.so
+usr/lib/*/libresource_directory.so

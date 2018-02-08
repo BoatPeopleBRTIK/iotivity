@@ -1,1 +1,4 @@
-usr/bin/*
+usr/lib/*/iotivity/examples/*
+usr/lib/*/iotivity/resource/csdk/security/provisioning/*
+usr/lib/*/iotivity/resource/examples/*
+usr/lib/*/iotivity/service/*
