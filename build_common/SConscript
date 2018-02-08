@@ -360,6 +360,7 @@ if target_os in targets_support_cc:
         env.Replace(AR=prefix + env.get('AR', 'ar'))
         env.Replace(AS=prefix + env.get('AS', 'as'))
         env.Replace(RANLIB=prefix + env.get('RANLIB', 'ranlib'))
+        env['CROSS_COMPILE'] = prefix[:-1]
 
     if tc_path:
         env.PrependENVPath('PATH', tc_path)
@@ -845,7 +846,7 @@ else:
     # Load config of target os
     env.SConscript(target_os + '/SConscript')
 
-if env.get('CROSS_COMPILE'):
+if env.get('CROSS_COMPILE') and target_os == "yocto":
     env.Append(RPATH=env.Literal('\\$$ORIGIN'))
 else:
     env.Append(RPATH=env.get('BUILD_DIR'))
