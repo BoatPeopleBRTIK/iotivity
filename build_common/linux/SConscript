@@ -16,7 +16,7 @@ env.AppendENVPath('LD_LIBRARY_PATH', [build_dir])
 
 # Set release/debug flags
 if env.get('RELEASE'):
-    env.AppendUnique(CCFLAGS=['-Os'])
+    env.AppendUnique(CCFLAGS=['-Os', '-g'])
 else:
     env.AppendUnique(CCFLAGS=['-g'])
 
