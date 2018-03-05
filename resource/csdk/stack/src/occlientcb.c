@@ -25,6 +25,8 @@
 #include "trace.h"
 #include "oic_malloc.h"
 #include <string.h>
+#include <pthread.h>
+
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -40,6 +42,7 @@
 #define TAG "OIC_RI_CLIENTCB"
 
 struct ClientCB *cbList = NULL;
+pthread_mutex_t cbListLock = PTHREAD_MUTEX_INITIALIZER;
 
 OCStackResult
 AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
@@ -158,7 +161,9 @@ AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
             cbNode->devAddr = devAddr;          // I own it now
             OIC_LOG_V(INFO, TAG, "Added Callback for uri : %s", requestUri);
             OIC_TRACE_MARK(%s:AddClientCB:uri:%s, TAG, requestUri);
+            pthread_mutex_lock(&cbListLock);
             LL_APPEND(cbList, cbNode);
+            pthread_mutex_unlock(&cbListLock);
             *clientCB = cbNode;
         }
     }
@@ -292,6 +297,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                       OCDoHandle handle, const char * requestUri)
 {
     ClientCB* out = NULL;
+    pthread_mutex_lock(&cbListLock);
 
     if (token && tokenLength <= CA_MAX_TOKEN_LEN && tokenLength > 0)
     {
@@ -304,6 +310,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
             if (memcmp(out->token, token, tokenLength) == 0)
             {
                 OIC_LOG(INFO, TAG, "Found in callback list");
+                pthread_mutex_unlock(&cbListLock);
                 return out;
             }
             CheckAndDeleteTimedOutCB(out);
@@ -317,6 +324,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
             if (out->handle == handle)
             {
                 OIC_LOG(INFO, TAG, "Found in callback list");
+                pthread_mutex_unlock(&cbListLock);
                 return out;
             }
             CheckAndDeleteTimedOutCB(out);
@@ -332,11 +340,13 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
             if (out->requestUri && strcmp(out->requestUri, requestUri ) == 0)
             {
                 OIC_LOG(INFO, TAG, "Found in callback list");
+                pthread_mutex_unlock(&cbListLock);
                 return out;
             }
             CheckAndDeleteTimedOutCB(out);
         }
     }
+    pthread_mutex_unlock(&cbListLock);
     OIC_LOG(INFO, TAG, "Callback Not found !!");
     return NULL;
 }
@@ -368,11 +378,13 @@ void DeleteClientCBList()
 {
     ClientCB* out;
     ClientCB* tmp;
+    pthread_mutex_lock(&cbListLock);
     LL_FOREACH_SAFE(cbList, out, tmp)
     {
         DeleteClientCB(out);
     }
     cbList = NULL;
+    pthread_mutex_unlock(&cbListLock);
 }
 
 void FindAndDeleteClientCB(ClientCB * cbNode)
@@ -380,6 +392,7 @@ void FindAndDeleteClientCB(ClientCB * cbNode)
     ClientCB* tmp;
     if (cbNode)
     {
+        pthread_mutex_lock(&cbListLock);
         LL_FOREACH(cbList, tmp)
         {
             if (cbNode == tmp)
@@ -388,5 +401,6 @@ void FindAndDeleteClientCB(ClientCB * cbNode)
                 break;
             }
         }
+        pthread_mutex_unlock(&cbListLock);
     }
 }
