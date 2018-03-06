@@ -109,6 +109,6 @@
  * @note: Changing the setting to a very long duration may lead to unsupported and untested
  * operation. Setting this to as small a value as reasonable will reclaim memory faster.
  */
-#define MAX_CB_TIMEOUT_SECONDS   (2 * 60 * 60)  // 2 hours = 7200 seconds.
+#define MAX_CB_TIMEOUT_SECONDS   (10)
 
 #endif //OCSTACK_CONFIG_H_
