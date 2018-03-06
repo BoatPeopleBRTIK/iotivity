@@ -299,6 +299,13 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
     ClientCB* out = NULL;
     pthread_mutex_lock(&cbListLock);
 
+    for (out = cbList; out;)
+    {
+        ClientCB *next = out->next;
+        CheckAndDeleteTimedOutCB(out);
+        out = next;
+    }
+
     if (token && tokenLength <= CA_MAX_TOKEN_LEN && tokenLength > 0)
     {
         OIC_LOG (INFO, TAG,  "Looking for token");
@@ -313,7 +320,6 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 pthread_mutex_unlock(&cbListLock);
                 return out;
             }
-            CheckAndDeleteTimedOutCB(out);
         }
     }
     else if (handle)
@@ -327,7 +333,6 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 pthread_mutex_unlock(&cbListLock);
                 return out;
             }
-            CheckAndDeleteTimedOutCB(out);
         }
     }
     else if (requestUri)
@@ -343,7 +348,6 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 pthread_mutex_unlock(&cbListLock);
                 return out;
             }
-            CheckAndDeleteTimedOutCB(out);
         }
     }
     pthread_mutex_unlock(&cbListLock);
