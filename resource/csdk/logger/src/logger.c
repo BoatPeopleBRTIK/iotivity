@@ -54,6 +54,7 @@
 #include "experimental/logger.h"
 #include "string.h"
 #include "experimental/logger_types.h"
+#include <stdlib.h>
 
 // log level
 static int g_level = DEBUG;
@@ -251,6 +252,21 @@ void OCLogv(int level, const char * tag, const char * format, ...)
 }
 
 /**
+ * Dynamic log level by "IOTIVITY_LOG_LEVEL" environment variable
+ */
+static int _env_log_level = -1;
+
+static void _env_check(void)
+{
+	if (getenv("IOTIVITY_LOG_LEVEL") == NULL) {
+		_env_log_level = 0;
+		return;
+	}
+
+	_env_log_level = atoi(getenv("IOTIVITY_LOG_LEVEL"));
+}
+
+/**
  * Output a log string with the specified priority level.
  * Only defined for Linux and Android
  *
@@ -269,6 +285,12 @@ void OCLog(int level, const char * tag, const char * logStr)
     {
         return;
     }
+
+    if (_env_log_level == -1)
+	    _env_check();
+
+    if (level < _env_log_level)
+	    return;
 
     switch(level)
     {

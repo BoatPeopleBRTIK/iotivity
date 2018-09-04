@@ -32,11 +32,11 @@ endif
 	dh $@
 
 override_dh_auto_build:
-	scons TARGET_OS=linux TARGET_ARCH=$(BUILD_ARCH) RELEASE=True SECURED=1 TARGET_TRANSPORT=IP LOG_LEVEL=ERROR VERBOSE=yes \
+	scons TARGET_OS=linux TARGET_ARCH=$(BUILD_ARCH) RELEASE=True SECURED=1 TARGET_TRANSPORT=IP LOG_LEVEL=DEBUG VERBOSE=yes \
 		$(TC_PATH) TC_PREFIX=$(DEB_HOST_GNU_TYPE)- $(NUMJOBS) --prefix=/usr LIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)/
 
 override_dh_install:
-	scons TARGET_OS=linux TARGET_ARCH=$(BUILD_ARCH) RELEASE=True SECURED=1 TARGET_TRANSPORT=IP LOG_LEVEL=ERROR VERBOSE=yes \
+	scons TARGET_OS=linux TARGET_ARCH=$(BUILD_ARCH) RELEASE=True SECURED=1 TARGET_TRANSPORT=IP LOG_LEVEL=DEBUG VERBOSE=yes \
 		$(TC_PATH) TC_PREFIX=$(DEB_HOST_GNU_TYPE)- $(NUMJOBS) --prefix=/usr LIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)/ \
 		--install-sandbox=$(PWD)/debian/tmp install
 	find $(PWD)/debian/tmp -type f -executable -exec chrpath -d "{}" \;
