@@ -50,3 +50,16 @@ SConscript('src/SConscript', 'provisioning_env')
 
 if target_os in ['linux', 'msys_nt', 'windows', 'tizen']:
     SConscript('sample/SConscript', 'provisioning_env')
+
+provisioning_env.UserInstallTargetHeader(
+    'include/ocprovisioningmanager.h', 'resource/stack', 'ocprovisioningmanager.h')
+
+provisioning_env.UserInstallTargetHeader(
+    'include/pmtypes.h', 'resource/stack', 'pmtypes.h')
+
+provisioning_env.UserInstallTargetHeader(
+    'include/pmutility.h', 'resource/stack', 'pmutility.h')
+
+provisioning_env.UserInstallTargetHeader(
+    'include/internal/ownershiptransfermanager.h', 'resource/stack', 'ownershiptransfermanager.h')
+
