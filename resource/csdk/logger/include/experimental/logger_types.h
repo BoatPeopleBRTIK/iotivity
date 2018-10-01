@@ -61,6 +61,13 @@ typedef struct _oc_log_ctx
     int (*unlock)          (struct _oc_log_ctx *);
     int (*try_lock)        (struct _oc_log_ctx *);
     int (*locked_destroy)  (struct _oc_log_ctx *);
+
+    /* ARTIK custom feature */
+#ifndef IOTIVITY_ARTIK
+#define IOTIVITY_ARTIK
+#endif
+    size_t (*write_tag_level)  (struct _oc_log_ctx *, int, const char *tag,
+                                const char *msg);
 } oc_log_ctx_t;
 
 /* Notice that these are all passed the /top level/ ctx-- it's "public" with respect to

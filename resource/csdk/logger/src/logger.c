@@ -313,10 +313,12 @@ void OCLog(int level, const char * tag, const char * logStr)
    #endif
 
    #else
-       if (logCtx && logCtx->write_level)
+       if (logCtx && (logCtx->write_level || logCtx->write_tag_level))
        {
-           logCtx->write_level(logCtx, LEVEL_XTABLE[level], logStr);
-
+           if (logCtx->write_tag_level)
+               logCtx->write_tag_level(logCtx, LEVEL_XTABLE[level], tag, logStr);
+           else
+               logCtx->write_level(logCtx, LEVEL_XTABLE[level], logStr);
        }
        else
        {
