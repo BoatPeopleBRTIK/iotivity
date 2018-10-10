@@ -293,13 +293,6 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
 {
     ClientCB* out = NULL;
 
-    for (out = cbList; out;)
-    {
-        ClientCB *next = out->next;
-        CheckAndDeleteTimedOutCB(out);
-        out = next;
-    }
-
     if (token && tokenLength <= CA_MAX_TOKEN_LEN && tokenLength > 0)
     {
         OIC_LOG (INFO, TAG,  "Looking for token");
@@ -313,6 +306,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 OIC_LOG(INFO, TAG, "Found in callback list");
                 return out;
             }
+            CheckAndDeleteTimedOutCB(out);
         }
     }
     else if (handle)
@@ -325,6 +319,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 OIC_LOG(INFO, TAG, "Found in callback list");
                 return out;
             }
+            CheckAndDeleteTimedOutCB(out);
         }
     }
     else if (requestUri)
@@ -339,6 +334,7 @@ ClientCB* GetClientCB(const CAToken_t token, uint8_t tokenLength,
                 OIC_LOG(INFO, TAG, "Found in callback list");
                 return out;
             }
+            CheckAndDeleteTimedOutCB(out);
         }
     }
     OIC_LOG(INFO, TAG, "Callback Not found !!");
