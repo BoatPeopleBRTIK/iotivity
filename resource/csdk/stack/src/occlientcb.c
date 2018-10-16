@@ -42,7 +42,7 @@
 #define TAG "OIC_RI_CLIENTCB"
 
 struct ClientCB *cbList = NULL;
-pthread_mutex_t cbListLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t cbListLock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 OCStackResult
 AddClientCB(ClientCB** clientCB, OCCallbackData* cbData,
